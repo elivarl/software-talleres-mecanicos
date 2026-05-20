@@ -208,6 +208,18 @@ public class WorkOrder {
         this.status = WorkOrderStatus.REJECTED;
     }
 
+    public void ensureAllowsPartRegistration() {
+        if (this.status != WorkOrderStatus.APPROVED && this.status != WorkOrderStatus.IN_PROGRESS) {
+            throw new BusinessRuleException("Parts can only be added when the work order is APPROVED or IN_PROGRESS");
+        }
+    }
+
+    public void ensureAllowsPartDeletion() {
+        if (this.status == WorkOrderStatus.DELIVERED) {
+            throw new BusinessRuleException("Used parts cannot be deleted from a DELIVERED work order");
+        }
+    }
+
     public void ensureImportantFieldsAreModifiable() {
         if (this.status == WorkOrderStatus.DELIVERED) {
             throw new BusinessRuleException("A delivered work order cannot be modified");

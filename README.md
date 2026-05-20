@@ -1,6 +1,6 @@
 # Taller360 Backend
 
-Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales y cotizaciones con flujo publico de aprobacion o rechazo.
+Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con flujo publico de aprobacion o rechazo, inventario y registro de repuestos usados.
 
 ## Stack
 
@@ -32,13 +32,15 @@ Implementado:
 - Modulo `workorders`.
 - Modulo `inspections`.
 - Modulo `quotations`.
+- Modulo `inventory`.
 - Seed inicial de usuario ADMIN.
 - Endpoints base de historial del vehiculo.
 
 Todavia no implementado:
 
-- Inventory
 - Labor
+- Quality control
+- Delivery
 - Dashboard
 
 ## Estructura base
@@ -47,6 +49,7 @@ Todavia no implementado:
 com.taller360.app
 ├── auth
 ├── customers
+├── inventory
 ├── inspections
 ├── quotations
 ├── security
@@ -119,6 +122,8 @@ Migraciones actuales:
 - `V9__create_quotation_sequences_table.sql`
 - `V10__create_quotations_table.sql`
 - `V11__create_quotation_items_table.sql`
+- `V12__create_inventory_items_table.sql`
+- `V13__create_work_order_parts_table.sql`
 
 Flyway se ejecuta automaticamente al iniciar la aplicacion.
 
@@ -208,18 +213,37 @@ Cotizaciones publicas:
 - `POST /api/public/quotations/{token}/approve`
 - `POST /api/public/quotations/{token}/reject`
 
+Inventario:
+
+- `GET /api/inventory`
+- `GET /api/inventory?search={value}`
+- `POST /api/inventory`
+- `GET /api/inventory/{id}`
+- `PUT /api/inventory/{id}`
+- `PATCH /api/inventory/{id}/deactivate`
+- `GET /api/inventory/low-stock`
+
+Repuestos usados:
+
+- `POST /api/work-orders/{id}/parts`
+- `GET /api/work-orders/{id}/parts`
+- `DELETE /api/work-orders/{id}/parts/{partId}`
+
 ## Reglas implementadas hasta ahora
 
 - Solo `ADMIN` puede administrar usuarios.
 - `ADMIN` y `RECEPTIONIST` pueden gestionar clientes y vehiculos.
 - `ADMIN` y `RECEPTIONIST` pueden crear ordenes, asignar mecanicos y registrar inspecciones.
 - `ADMIN` y `RECEPTIONIST` pueden crear y gestionar cotizaciones.
+- `ADMIN` puede gestionar inventario.
+- `ADMIN` y `MECHANIC` pueden registrar y eliminar repuestos usados.
 - `MECHANIC` puede consultar ordenes y registrar diagnostico o notas internas.
 - `users.email` es unico.
 - `customers.identification` es unico si se registra.
 - `vehicles.plate` es unico.
 - `work_orders.code` se genera automaticamente con formato `OT-000001`.
 - `quotations.code` se genera automaticamente con formato `COT-000001`.
+- `inventory_items.sku` es unico.
 - Las contrasenas se almacenan con BCrypt.
 - Los usuarios inactivos no pueden autenticarse.
 - `customerId` es obligatorio al registrar un vehiculo.
@@ -242,6 +266,13 @@ Cotizaciones publicas:
 - Al rechazar una cotizacion, la orden cambia a `REJECTED`.
 - `subtotal`, `tax` y `total` se calculan con `app.tax-rate`.
 - El `publicToken` se genera al enviar la cotizacion.
+- Los repuestos usados solo pueden agregarse cuando la orden esta `APPROVED` o `IN_PROGRESS`.
+- Al registrar un repuesto usado, el stock se descuenta automaticamente.
+- Si no hay stock suficiente, el registro se rechaza.
+- Un item inactivo no puede usarse en nuevos work orders.
+- Al eliminar un repuesto usado antes de entregar, el stock se restaura.
+- `total` de repuesto usado = `salePrice * quantity`.
+- `margin` de repuesto usado = `(salePrice - unitCost) * quantity`.
 - Los endpoints privados requieren JWT, salvo `POST /api/auth/login`.
 - Los endpoints publicos de cotizaciones no requieren JWT.
 
@@ -267,7 +298,9 @@ Ahora `workOrders` devuelve un resumen basico con id, codigo, fecha de recepcion
 8. Registrar inspeccion inicial y fotos simuladas por URL.
 9. Crear cotizacion, agregar items y enviarla.
 10. Consultar, aprobar o rechazar la cotizacion mediante el endpoint publico.
-11. Consultar historial base por id o por placa.
+11. Crear items de inventario.
+12. Registrar repuestos usados sobre una orden aprobada o en progreso.
+13. Consultar historial base por id o por placa.
 
 ## Fuera de alcance por ahora
 
