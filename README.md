@@ -1,6 +1,6 @@
 # Taller360 Backend
 
-Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo e inspecciones iniciales.
+Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales y cotizaciones con flujo publico de aprobacion o rechazo.
 
 ## Stack
 
@@ -31,14 +31,12 @@ Implementado:
 - Modulo `vehicles`.
 - Modulo `workorders`.
 - Modulo `inspections`.
+- Modulo `quotations`.
 - Seed inicial de usuario ADMIN.
 - Endpoints base de historial del vehiculo.
 
 Todavia no implementado:
 
-- Work orders
-- Inspections
-- Quotations
 - Inventory
 - Labor
 - Dashboard
@@ -50,6 +48,7 @@ com.taller360.app
 ├── auth
 ├── customers
 ├── inspections
+├── quotations
 ├── security
 ├── shared
 ├── users
@@ -77,6 +76,7 @@ Variables soportadas por `application.yaml`:
 - `DB_URL`
 - `DB_USERNAME`
 - `DB_PASSWORD`
+- `APP_TAX_RATE`
 - `JWT_SECRET`
 - `JWT_EXPIRATION_SECONDS`
 
@@ -86,6 +86,7 @@ Valores por defecto locales:
 DB_URL=jdbc:mysql://localhost:3306/taller360?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Guayaquil
 DB_USERNAME=root
 DB_PASSWORD=root
+APP_TAX_RATE=0.15
 JWT_EXPIRATION_SECONDS=3600
 ```
 
@@ -115,6 +116,9 @@ Migraciones actuales:
 - `V6__create_work_orders_table.sql`
 - `V7__create_reception_inspections_table.sql`
 - `V8__create_inspection_photos_table.sql`
+- `V9__create_quotation_sequences_table.sql`
+- `V10__create_quotations_table.sql`
+- `V11__create_quotation_items_table.sql`
 
 Flyway se ejecuta automaticamente al iniciar la aplicacion.
 
@@ -188,16 +192,34 @@ Inspecciones:
 - `PUT /api/inspections/{id}`
 - `POST /api/inspections/{id}/photos`
 
+Cotizaciones privadas:
+
+- `POST /api/work-orders/{id}/quotation`
+- `GET /api/quotations/{id}`
+- `PUT /api/quotations/{id}`
+- `POST /api/quotations/{id}/items`
+- `PUT /api/quotations/{id}/items/{itemId}`
+- `DELETE /api/quotations/{id}/items/{itemId}`
+- `POST /api/quotations/{id}/send`
+
+Cotizaciones publicas:
+
+- `GET /api/public/quotations/{token}`
+- `POST /api/public/quotations/{token}/approve`
+- `POST /api/public/quotations/{token}/reject`
+
 ## Reglas implementadas hasta ahora
 
 - Solo `ADMIN` puede administrar usuarios.
 - `ADMIN` y `RECEPTIONIST` pueden gestionar clientes y vehiculos.
 - `ADMIN` y `RECEPTIONIST` pueden crear ordenes, asignar mecanicos y registrar inspecciones.
+- `ADMIN` y `RECEPTIONIST` pueden crear y gestionar cotizaciones.
 - `MECHANIC` puede consultar ordenes y registrar diagnostico o notas internas.
 - `users.email` es unico.
 - `customers.identification` es unico si se registra.
 - `vehicles.plate` es unico.
 - `work_orders.code` se genera automaticamente con formato `OT-000001`.
+- `quotations.code` se genera automaticamente con formato `COT-000001`.
 - Las contrasenas se almacenan con BCrypt.
 - Los usuarios inactivos no pueden autenticarse.
 - `customerId` es obligatorio al registrar un vehiculo.
@@ -213,7 +235,15 @@ Inspecciones:
 - Una orden `DELIVERED` o `CANCELLED` no permite modificaciones importantes.
 - Una orden solo puede tener una inspeccion inicial.
 - La inspeccion no puede modificarse si la orden esta `DELIVERED` o `CANCELLED`.
+- Solo cotizaciones `DRAFT` pueden modificarse.
+- No se puede enviar una cotizacion sin items.
+- Al enviar una cotizacion, la orden cambia a `QUOTED`.
+- Al aprobar una cotizacion, la orden cambia a `APPROVED`.
+- Al rechazar una cotizacion, la orden cambia a `REJECTED`.
+- `subtotal`, `tax` y `total` se calculan con `app.tax-rate`.
+- El `publicToken` se genera al enviar la cotizacion.
 - Los endpoints privados requieren JWT, salvo `POST /api/auth/login`.
+- Los endpoints publicos de cotizaciones no requieren JWT.
 
 ## Historial base del vehiculo
 
@@ -235,7 +265,9 @@ Ahora `workOrders` devuelve un resumen basico con id, codigo, fecha de recepcion
 6. Crear una orden de trabajo.
 7. Registrar diagnostico.
 8. Registrar inspeccion inicial y fotos simuladas por URL.
-9. Consultar historial base por id o por placa.
+9. Crear cotizacion, agregar items y enviarla.
+10. Consultar, aprobar o rechazar la cotizacion mediante el endpoint publico.
+11. Consultar historial base por id o por placa.
 
 ## Fuera de alcance por ahora
 

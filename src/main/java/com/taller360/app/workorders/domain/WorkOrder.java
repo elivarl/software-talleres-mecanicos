@@ -184,6 +184,30 @@ public class WorkOrder {
         this.internalNotes = internalNotes;
     }
 
+    public void markQuotedFromQuotationSent() {
+        ensureImportantFieldsAreModifiable();
+        if (this.status != WorkOrderStatus.RECEIVED && this.status != WorkOrderStatus.DIAGNOSIS) {
+            throw new InvalidStatusTransitionException("A work order can only move to QUOTED when it is in RECEIVED or DIAGNOSIS");
+        }
+        this.status = WorkOrderStatus.QUOTED;
+    }
+
+    public void markApprovedFromQuotation() {
+        ensureImportantFieldsAreModifiable();
+        if (this.status != WorkOrderStatus.QUOTED) {
+            throw new InvalidStatusTransitionException("A work order can only move to APPROVED from QUOTED");
+        }
+        this.status = WorkOrderStatus.APPROVED;
+    }
+
+    public void markRejectedFromQuotation() {
+        ensureImportantFieldsAreModifiable();
+        if (this.status != WorkOrderStatus.QUOTED) {
+            throw new InvalidStatusTransitionException("A work order can only move to REJECTED from QUOTED");
+        }
+        this.status = WorkOrderStatus.REJECTED;
+    }
+
     public void ensureImportantFieldsAreModifiable() {
         if (this.status == WorkOrderStatus.DELIVERED) {
             throw new BusinessRuleException("A delivered work order cannot be modified");

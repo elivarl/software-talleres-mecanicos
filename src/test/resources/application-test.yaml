@@ -12,6 +12,7 @@ spring:
     enabled: true
 
 app:
+  tax-rate: 0.15
   jwt:
     secret: Taller360JwtSecretKeyForTestingOnly123456789012345
     expiration-seconds: 3600
