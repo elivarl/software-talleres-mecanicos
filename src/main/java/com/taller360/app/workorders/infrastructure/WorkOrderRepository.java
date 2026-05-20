@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,4 +40,40 @@ public interface WorkOrderRepository extends JpaRepository<WorkOrder, Long> {
 
     @EntityGraph(attributePaths = {"customer", "vehicle", "assignedMechanic"})
     List<WorkOrder> findByVehicleIdOrderByReceptionDateDescCreatedAtDesc(Long vehicleId);
+
+    long countByReceptionDateGreaterThanEqualAndReceptionDateLessThan(LocalDateTime from, LocalDateTime to);
+
+    long countByStatus(WorkOrderStatus status);
+
+    @Query("""
+            select count(wo)
+            from WorkOrder wo
+            where wo.status not in :statuses
+            """)
+    long countByStatusNotIn(@Param("statuses") Collection<WorkOrderStatus> statuses);
+
+    @Query("""
+            select count(wo)
+            from WorkOrder wo
+            where wo.status = com.taller360.app.workorders.domain.WorkOrderStatus.DELIVERED
+              and wo.deliveredAt >= :from
+              and wo.deliveredAt < :to
+            """)
+    long countDeliveredBetween(
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to
+    );
+
+    @Query("""
+            select wo.status as status, count(wo) as total
+            from WorkOrder wo
+            group by wo.status
+            """)
+    List<WorkOrderStatusCount> countGroupedByStatus();
+
+    interface WorkOrderStatusCount {
+        WorkOrderStatus getStatus();
+
+        long getTotal();
+    }
 }

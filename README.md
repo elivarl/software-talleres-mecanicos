@@ -1,6 +1,6 @@
 # Taller360 Backend
 
-Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con flujo publico de aprobacion o rechazo, inventario, registro de repuestos usados, mano de obra, quality control, marcado de ordenes listas para retiro, entrega del vehiculo e historial completo del vehiculo.
+Backend MVP para la gestion operativa de talleres mecanicos. Actualmente incluye autenticacion JWT, usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con aprobacion publica, inventario, repuestos usados, mano de obra, quality control, entrega del vehiculo, historial completo del vehiculo y dashboard operativo.
 
 ## Stack
 
@@ -25,36 +25,26 @@ Implementado:
 - Migraciones con Flyway.
 - Manejo global de errores.
 - Seguridad JWT stateless.
-- Modulo `auth`.
-- Modulo `users`.
-- Modulo `customers`.
-- Modulo `vehicles`.
-- Modulo `workorders`.
-- Modulo `inspections`.
-- Modulo `quotations`.
-- Modulo `inventory`.
-- Modulo `labor`.
-- Endpoints completos de historial del vehiculo.
+- Modulos `auth`, `users`, `customers`, `vehicles`, `workorders`, `inspections`, `quotations`, `inventory`, `labor` y `dashboard`.
+- Historial completo del vehiculo.
 - Seed inicial de usuario ADMIN.
-
-Todavia no implementado:
-
-- Dashboard
 
 ## Estructura base
 
 ```text
 com.taller360.app
-├── auth
-├── customers
-├── inventory
-├── inspections
-├── quotations
-├── security
-├── shared
-├── users
-├── vehicles
-└── workorders
+|-- auth
+|-- customers
+|-- dashboard
+|-- inventory
+|-- inspections
+|-- labor
+|-- quotations
+|-- security
+|-- shared
+|-- users
+|-- vehicles
+`-- workorders
 ```
 
 Cada modulo sigue esta estructura:
@@ -237,35 +227,26 @@ Labor:
 - `GET /api/work-orders/{id}/labor`
 - `DELETE /api/work-orders/{id}/labor/{laborId}`
 
-## Reglas implementadas hasta ahora
+Dashboard:
 
-- Solo `ADMIN` puede administrar usuarios.
-- `ADMIN` y `RECEPTIONIST` pueden gestionar clientes y vehiculos.
-- `ADMIN` y `RECEPTIONIST` pueden crear ordenes, asignar mecanicos y registrar inspecciones.
-- `ADMIN` y `RECEPTIONIST` pueden crear y gestionar cotizaciones.
-- `ADMIN` puede gestionar inventario.
-- `ADMIN` y `MECHANIC` pueden registrar y eliminar repuestos usados.
-- `ADMIN` y `MECHANIC` pueden registrar y eliminar mano de obra.
-- `ADMIN` y `MECHANIC` pueden completar quality control y marcar ordenes como `READY`.
-- `ADMIN` y `RECEPTIONIST` pueden registrar la entrega del vehiculo.
-- `MECHANIC` puede consultar ordenes y registrar diagnostico o notas internas.
-- `users.email` es unico.
+- `GET /api/dashboard`
+
+## Reglas principales implementadas
+
+- Solo `ADMIN` puede administrar usuarios, inventario y dashboard.
+- `ADMIN` y `RECEPTIONIST` pueden gestionar clientes, vehiculos, work orders e inspecciones.
+- `ADMIN` y `RECEPTIONIST` pueden gestionar cotizaciones privadas.
+- `ADMIN` y `MECHANIC` pueden registrar repuestos usados, mano de obra y quality control.
+- `users.email`, `vehicles.plate` e `inventory_items.sku` son unicos.
 - `customers.identification` es unico si se registra.
-- `vehicles.plate` es unico.
-- `work_orders.code` se genera automaticamente con formato `OT-000001`.
-- `quotations.code` se genera automaticamente con formato `COT-000001`.
-- `inventory_items.sku` es unico.
-- Las contrasenas se almacenan con BCrypt.
-- Los usuarios inactivos no pueden autenticarse.
-- `customerId` es obligatorio al registrar un vehiculo.
-- `mileage` debe ser mayor o igual a 0.
-- `year` del vehiculo debe estar entre 1900 y el siguiente anio calendario.
+- Las contrasenas se almacenan con BCrypt y los usuarios inactivos no pueden autenticarse.
+- `work_orders.code` se genera con formato `OT-000001`.
+- `quotations.code` se genera con formato `COT-000001`.
 - Una orden inicia en `RECEIVED`.
 - `RECEIVED -> DIAGNOSIS` es valido.
-- No se puede mover a `APPROVED`, `REJECTED` o `QUOTED` hasta implementar quotations.
-- No se puede mover a `IN_PROGRESS` si no esta `APPROVED`.
-- No se puede mover a `READY` sin control de calidad completo.
-- No se puede mover a `DELIVERED` si no esta `READY`.
+- No se puede mover a `IN_PROGRESS` si la orden no esta `APPROVED`.
+- No se puede mover a `READY` sin quality control completo.
+- No se puede mover a `DELIVERED` si la orden no esta `READY`.
 - Una orden `CANCELLED` no puede moverse a otro estado.
 - Una orden `DELIVERED` o `CANCELLED` no permite modificaciones importantes.
 - Una orden solo puede tener una inspeccion inicial.
@@ -276,37 +257,21 @@ Labor:
 - Al aprobar una cotizacion, la orden cambia a `APPROVED`.
 - Al rechazar una cotizacion, la orden cambia a `REJECTED`.
 - `subtotal`, `tax` y `total` se calculan con `app.tax-rate`.
-- El `publicToken` se genera al enviar la cotizacion.
 - Los repuestos usados solo pueden agregarse cuando la orden esta `APPROVED` o `IN_PROGRESS`.
 - Al registrar un repuesto usado, el stock se descuenta automaticamente.
 - Si no hay stock suficiente, el registro se rechaza.
 - Un item inactivo no puede usarse en nuevos work orders.
 - Al eliminar un repuesto usado antes de entregar, el stock se restaura.
-- `total` de repuesto usado = `salePrice * quantity`.
-- `margin` de repuesto usado = `(salePrice - unitCost) * quantity`.
 - La mano de obra solo puede agregarse cuando la orden esta `APPROVED` o `IN_PROGRESS`.
-- La mano de obra no puede agregarse si la orden esta `RECEIVED`, `DIAGNOSIS`, `QUOTED`, `REJECTED`, `READY`, `DELIVERED` o `CANCELLED`.
 - La mano de obra no puede eliminarse de una orden `DELIVERED`.
-- `description` de mano de obra es obligatorio.
-- `price` de mano de obra debe ser mayor o igual a 0.
 - El quality control solo puede completarse si la orden esta `IN_PROGRESS`.
-- El quality control no puede modificarse despues de `DELIVERED`.
-- Una orden solo puede pasar a `READY` si esta `IN_PROGRESS`.
-- Una orden solo puede pasar a `READY` si `qualityControlCompleted` es `true`.
-- `READY` significa que el trabajo termino, pero el cliente todavia no retira el vehiculo.
-- Una orden `REJECTED` o `CANCELLED` no puede pasar a `READY`.
+- Una orden solo puede pasar a `READY` si esta `IN_PROGRESS` y `qualityControlCompleted` es `true`.
 - Solo una orden en estado `READY` puede entregarse.
-- Al entregar, la orden pasa a `DELIVERED`.
 - Al entregar, se registran `deliveredAt`, `deliveredTo` y `finalMileage`.
-- `deliveredTo` es obligatorio.
 - `finalMileage` debe ser mayor o igual a `currentMileage`.
-- Una orden `IN_PROGRESS`, `REJECTED` o `CANCELLED` no puede entregarse.
-- El historial del vehiculo muestra solo ordenes asociadas al vehiculo consultado.
-- El historial del vehiculo se ordena desde la orden mas reciente hasta la mas antigua.
-- El historial incluye inspeccion, cotizacion, repuestos usados, mano de obra, diagnostico, estado final, fechas relevantes, kilometraje y totales basicos por orden.
-- El historial no expone `internalNotes`.
-- Los endpoints privados requieren JWT, salvo `POST /api/auth/login`.
-- Los endpoints publicos de cotizaciones no requieren JWT.
+- El historial del vehiculo se ordena de mas reciente a mas antiguo y no expone `internalNotes`.
+- `GET /api/dashboard` es solo para `ADMIN`.
+- `lowStockItems` incluye items donde `currentStock <= minStock`.
 
 ## Historial del vehiculo
 
@@ -322,6 +287,32 @@ Los endpoints `GET /api/vehicles/{id}/history` y `GET /api/vehicles/by-plate/{pl
 - Mano de obra.
 - Totales basicos por orden.
 - Kilometraje registrado y entrega si aplica.
+
+## Dashboard operativo
+
+El endpoint `GET /api/dashboard` devuelve:
+
+- `totalWorkOrdersThisMonth`
+- `workOrdersByStatus`
+- `estimatedRevenueThisMonth`
+- `pendingWorkOrders`
+- `readyToDeliverWorkOrders`
+- `lowStockItems`
+- `deliveredWorkOrdersThisMonth`
+
+Criterio de ingresos estimados del MVP:
+
+- Se calcula como `used parts total + labor items`.
+- Solo cuenta work orders cuya `receptionDate` pertenece al mes actual.
+- Excluye work orders en estado `CANCELLED` y `REJECTED`.
+
+Otros criterios del dashboard:
+
+- `totalWorkOrdersThisMonth` usa `receptionDate` dentro del mes actual.
+- `workOrdersByStatus` muestra el conteo actual agrupado por estado.
+- `pendingWorkOrders` cuenta ordenes abiertas, es decir, todas excepto `DELIVERED`, `CANCELLED` y `REJECTED`.
+- `readyToDeliverWorkOrders` cuenta ordenes con estado `READY`.
+- `deliveredWorkOrdersThisMonth` cuenta ordenes `DELIVERED` con `deliveredAt` dentro del mes actual.
 
 ## Flujo basico de prueba
 
@@ -342,12 +333,16 @@ Los endpoints `GET /api/vehicles/{id}/history` y `GET /api/vehicles/by-plate/{pl
 15. Marcar la orden como `READY`.
 16. Entregar el vehiculo y verificar estado `DELIVERED`.
 17. Consultar historial completo por id o por placa.
+18. Consultar el dashboard operativo.
 
-## Fuera de alcance por ahora
+## Fuera de alcance del MVP
 
 - Frontend.
-- Modulos operativos del taller.
-- Integraciones externas.
+- Facturacion SRI real.
+- Integraciones con WhatsApp o pagos online.
 - Multitenancy.
 - Subida real de imagenes.
-- Facturacion SRI.
+- Microservicios, Kafka o RabbitMQ.
+- Contabilidad completa.
+- Reporteria compleja.
+- Soporte multi-sucursal.
