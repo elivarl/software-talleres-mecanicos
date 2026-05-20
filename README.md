@@ -1,6 +1,6 @@
 # Taller360 Backend
 
-Backend MVP para la gestión operativa de talleres mecánicos. Esta primera fase implementa autenticación JWT, administración de usuarios internos y la base técnica para continuar con los módulos del flujo operativo.
+Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes y vehiculos.
 
 ## Stack
 
@@ -10,28 +10,30 @@ Backend MVP para la gestión operativa de talleres mecánicos. Esta primera fase
 - Spring Web
 - Spring Data JPA
 - Spring Security
+- Spring Validation
 - Flyway
 - MySQL
 - JUnit 5
 
-## Alcance actual de la fase 1
+## Alcance actual
 
-Incluye:
+Implementado:
 
-- Configuración base del proyecto con Gradle.
-- Estructura modular inicial bajo `com.taller360.app`.
-- Configuración de MySQL.
+- Configuracion base del proyecto con Gradle.
+- Estructura modular bajo `com.taller360.app`.
+- Configuracion de MySQL.
 - Migraciones con Flyway.
 - Manejo global de errores.
 - Seguridad JWT stateless.
-- Módulo `auth`.
-- Módulo `users`.
+- Modulo `auth`.
+- Modulo `users`.
+- Modulo `customers`.
+- Modulo `vehicles`.
 - Seed inicial de usuario ADMIN.
+- Endpoints base de historial del vehiculo.
 
-Todavía no incluye:
+Todavia no implementado:
 
-- Customers
-- Vehicles
 - Work orders
 - Inspections
 - Quotations
@@ -44,12 +46,14 @@ Todavía no incluye:
 ```text
 com.taller360.app
 ├── auth
+├── customers
 ├── security
 ├── shared
-└── users
+├── users
+└── vehicles
 ```
 
-Cada módulo sigue una estructura pragmática:
+Cada modulo sigue esta estructura:
 
 - `application`: casos de uso y DTOs.
 - `domain`: entidades y enums.
@@ -62,7 +66,7 @@ Cada módulo sigue una estructura pragmática:
 - Gradle 8+
 - MySQL 8+
 
-## Configuración
+## Configuracion
 
 Variables soportadas por `application.yaml`:
 
@@ -83,7 +87,7 @@ JWT_EXPIRATION_SECONDS=3600
 
 ## Base de datos
 
-Crear la base si prefieres no usar `createDatabaseIfNotExist=true`:
+Si prefieres crear la base manualmente:
 
 ```sql
 CREATE DATABASE taller360 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -97,16 +101,18 @@ Las migraciones viven en:
 src/main/resources/db/migration
 ```
 
-Se ejecutan automáticamente al iniciar la aplicación.
-
 Migraciones actuales:
 
 - `V1__create_users_table.sql`
 - `V2__insert_seed_admin_user.sql`
+- `V3__create_customers_table.sql`
+- `V4__create_vehicles_table.sql`
 
-## Ejecución
+Flyway se ejecuta automaticamente al iniciar la aplicacion.
 
-Iniciar la aplicación:
+## Ejecucion
+
+Iniciar la aplicacion:
 
 ```bash
 ./gradlew bootRun
@@ -124,9 +130,9 @@ Ejecutar pruebas:
 - Password: `Admin12345*`
 - Role: `ADMIN`
 
-## Endpoints disponibles en esta fase
+## Endpoints disponibles
 
-Autenticación:
+Autenticacion:
 
 - `POST /api/auth/login`
 
@@ -138,26 +144,62 @@ Usuarios:
 - `PUT /api/users/{id}`
 - `PATCH /api/users/{id}/deactivate`
 
-## Flujo de prueba básico
+Clientes:
 
-1. Iniciar la aplicación.
-2. Hacer login con el usuario ADMIN seed.
-3. Usar el token JWT en `Authorization: Bearer <token>`.
-4. Crear, listar, consultar, actualizar y desactivar usuarios internos.
+- `GET /api/customers`
+- `GET /api/customers?search={value}`
+- `POST /api/customers`
+- `GET /api/customers/{id}`
+- `PUT /api/customers/{id}`
 
-## Reglas de negocio implementadas en esta fase
+Vehiculos:
+
+- `GET /api/vehicles`
+- `GET /api/vehicles?plate={value}`
+- `POST /api/vehicles`
+- `GET /api/vehicles/{id}`
+- `PUT /api/vehicles/{id}`
+- `GET /api/vehicles/{id}/history`
+- `GET /api/vehicles/by-plate/{plate}/history`
+
+## Reglas implementadas hasta ahora
 
 - Solo `ADMIN` puede administrar usuarios.
-- `users.email` es único.
-- Las contraseñas se almacenan con BCrypt.
-- Los usuarios inactivos no deben autenticarse.
-- Los endpoints privados requieren JWT.
+- `ADMIN` y `RECEPTIONIST` pueden gestionar clientes y vehiculos.
+- `users.email` es unico.
+- `customers.identification` es unico si se registra.
+- `vehicles.plate` es unico.
+- Las contrasenas se almacenan con BCrypt.
+- Los usuarios inactivos no pueden autenticarse.
+- `customerId` es obligatorio al registrar un vehiculo.
+- `mileage` debe ser mayor o igual a 0.
+- `year` del vehiculo debe estar entre 1900 y el siguiente anio calendario.
+- Los endpoints privados requieren JWT, salvo `POST /api/auth/login`.
+
+## Historial base del vehiculo
+
+Los endpoints de historial del vehiculo ya existen en esta fase y devuelven:
+
+- Datos del vehiculo.
+- Datos del cliente actual.
+- Coleccion `workOrders`.
+
+Por ahora `workOrders` retorna vacio hasta que se implemente el modulo `workorders`.
+
+## Flujo basico de prueba
+
+1. Iniciar la aplicacion.
+2. Hacer login con el usuario ADMIN seed.
+3. Usar el token JWT en `Authorization: Bearer <token>`.
+4. Crear y consultar clientes.
+5. Registrar y consultar vehiculos.
+6. Consultar historial base por id o por placa.
 
 ## Fuera de alcance por ahora
 
 - Frontend.
-- Módulos operativos del taller.
+- Modulos operativos del taller.
 - Integraciones externas.
 - Multitenancy.
-- Subida real de imágenes.
-- Facturación SRI.
+- Subida real de imagenes.
+- Facturacion SRI.
