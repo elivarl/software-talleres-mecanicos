@@ -3,6 +3,7 @@ package com.taller360.app.workorders.web;
 import com.taller360.app.workorders.application.WorkOrderService;
 import com.taller360.app.workorders.application.dto.AssignMechanicRequest;
 import com.taller360.app.workorders.application.dto.CreateWorkOrderRequest;
+import com.taller360.app.workorders.application.dto.DeliverWorkOrderRequest;
 import com.taller360.app.workorders.application.dto.UpdateDiagnosisRequest;
 import com.taller360.app.workorders.application.dto.UpdateInternalNotesRequest;
 import com.taller360.app.workorders.application.dto.UpdateQualityControlRequest;
@@ -96,5 +97,11 @@ public class WorkOrderController {
     @PreAuthorize("hasAnyRole('ADMIN','MECHANIC')")
     public WorkOrderResponse markReady(@PathVariable Long id) {
         return workOrderService.markReady(id);
+    }
+
+    @PatchMapping("/{id}/deliver")
+    @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST')")
+    public WorkOrderResponse deliver(@PathVariable Long id, @Valid @RequestBody DeliverWorkOrderRequest request) {
+        return workOrderService.deliver(id, request);
     }
 }

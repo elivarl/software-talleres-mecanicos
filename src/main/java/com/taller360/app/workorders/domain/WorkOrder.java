@@ -205,6 +205,26 @@ public class WorkOrder {
         this.readyAt = LocalDateTime.now();
     }
 
+    public void deliver(String deliveredTo, Long finalMileage) {
+        if (this.status == WorkOrderStatus.CANCELLED) {
+            throw new InvalidStatusTransitionException("A cancelled work order cannot move to another status");
+        }
+        if (this.status == WorkOrderStatus.DELIVERED) {
+            throw new InvalidStatusTransitionException("A delivered work order cannot change status");
+        }
+        if (this.status != WorkOrderStatus.READY) {
+            throw new InvalidStatusTransitionException("Cannot deliver a work order that is not ready");
+        }
+        if (finalMileage < this.currentMileage) {
+            throw new BusinessRuleException("Final mileage must be greater than or equal to current mileage");
+        }
+
+        this.status = WorkOrderStatus.DELIVERED;
+        this.deliveredAt = LocalDateTime.now();
+        this.deliveredTo = deliveredTo;
+        this.finalMileage = finalMileage;
+    }
+
     public void markQuotedFromQuotationSent() {
         ensureImportantFieldsAreModifiable();
         if (this.status != WorkOrderStatus.RECEIVED && this.status != WorkOrderStatus.DIAGNOSIS) {

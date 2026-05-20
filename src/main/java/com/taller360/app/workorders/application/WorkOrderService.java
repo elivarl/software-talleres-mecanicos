@@ -11,6 +11,7 @@ import com.taller360.app.vehicles.domain.Vehicle;
 import com.taller360.app.vehicles.infrastructure.VehicleRepository;
 import com.taller360.app.workorders.application.dto.AssignMechanicRequest;
 import com.taller360.app.workorders.application.dto.CreateWorkOrderRequest;
+import com.taller360.app.workorders.application.dto.DeliverWorkOrderRequest;
 import com.taller360.app.workorders.application.dto.UpdateDiagnosisRequest;
 import com.taller360.app.workorders.application.dto.UpdateInternalNotesRequest;
 import com.taller360.app.workorders.application.dto.UpdateQualityControlRequest;
@@ -149,6 +150,13 @@ public class WorkOrderService {
     public WorkOrderResponse markReady(Long id) {
         WorkOrder workOrder = getWorkOrderEntity(id);
         workOrder.markReady();
+        return toResponse(workOrder);
+    }
+
+    @Transactional
+    public WorkOrderResponse deliver(Long id, DeliverWorkOrderRequest request) {
+        WorkOrder workOrder = getWorkOrderEntity(id);
+        workOrder.deliver(request.deliveredTo().trim(), request.finalMileage());
         return toResponse(workOrder);
     }
 

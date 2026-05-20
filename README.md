@@ -1,6 +1,6 @@
 # Taller360 Backend
 
-Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con flujo publico de aprobacion o rechazo, inventario, registro de repuestos usados, mano de obra, quality control y marcado de ordenes listas para retiro.
+Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con flujo publico de aprobacion o rechazo, inventario, registro de repuestos usados, mano de obra, quality control, marcado de ordenes listas para retiro y entrega del vehiculo.
 
 ## Stack
 
@@ -39,7 +39,6 @@ Implementado:
 
 Todavia no implementado:
 
-- Delivery
 - Dashboard
 
 ## Estructura base
@@ -191,6 +190,7 @@ Ordenes de trabajo:
 - `PATCH /api/work-orders/{id}/internal-notes`
 - `PATCH /api/work-orders/{id}/quality-control`
 - `PATCH /api/work-orders/{id}/mark-ready`
+- `PATCH /api/work-orders/{id}/deliver`
 
 Inspecciones:
 
@@ -247,6 +247,7 @@ Labor:
 - `ADMIN` y `MECHANIC` pueden registrar y eliminar repuestos usados.
 - `ADMIN` y `MECHANIC` pueden registrar y eliminar mano de obra.
 - `ADMIN` y `MECHANIC` pueden completar quality control y marcar ordenes como `READY`.
+- `ADMIN` y `RECEPTIONIST` pueden registrar la entrega del vehiculo.
 - `MECHANIC` puede consultar ordenes y registrar diagnostico o notas internas.
 - `users.email` es unico.
 - `customers.identification` es unico si se registra.
@@ -294,6 +295,12 @@ Labor:
 - Una orden solo puede pasar a `READY` si `qualityControlCompleted` es `true`.
 - `READY` significa que el trabajo termino, pero el cliente todavia no retira el vehiculo.
 - Una orden `REJECTED` o `CANCELLED` no puede pasar a `READY`.
+- Solo una orden en estado `READY` puede entregarse.
+- Al entregar, la orden pasa a `DELIVERED`.
+- Al entregar, se registran `deliveredAt`, `deliveredTo` y `finalMileage`.
+- `deliveredTo` es obligatorio.
+- `finalMileage` debe ser mayor o igual a `currentMileage`.
+- Una orden `IN_PROGRESS`, `REJECTED` o `CANCELLED` no puede entregarse.
 - Los endpoints privados requieren JWT, salvo `POST /api/auth/login`.
 - Los endpoints publicos de cotizaciones no requieren JWT.
 
@@ -324,7 +331,8 @@ Ahora `workOrders` devuelve un resumen basico con id, codigo, fecha de recepcion
 13. Registrar items de mano de obra sobre una orden aprobada o en progreso.
 14. Completar quality control.
 15. Marcar la orden como `READY`.
-16. Consultar historial base por id o por placa.
+16. Entregar el vehiculo y verificar estado `DELIVERED`.
+17. Consultar historial base por id o por placa.
 
 ## Fuera de alcance por ahora
 

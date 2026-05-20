@@ -177,6 +177,57 @@ class WorkOrderTest {
         assertEquals("A cancelled work order cannot move to another status", exception.getMessage());
     }
 
+    @Test
+    void shouldNotDeliverWorkOrderIfItIsNotReady() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.IN_PROGRESS);
+        workOrder.setCurrentMileage(50000L);
+
+        InvalidStatusTransitionException exception = assertThrows(
+                InvalidStatusTransitionException.class,
+                () -> workOrder.deliver("Juan Perez", 50010L)
+        );
+
+        assertEquals("Cannot deliver a work order that is not ready", exception.getMessage());
+    }
+
+    @Test
+    void shouldNotDeliverWithFinalMileageLowerThanCurrentMileage() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.READY);
+        workOrder.setCurrentMileage(50000L);
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                () -> workOrder.deliver("Juan Perez", 49999L)
+        );
+
+        assertEquals("Final mileage must be greater than or equal to current mileage", exception.getMessage());
+    }
+
+    @Test
+    void shouldDeliverReadyWorkOrderAndSetDeliveryFields() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.READY);
+        workOrder.setCurrentMileage(50000L);
+
+        workOrder.deliver("Juan Perez", 50010L);
+
+        assertEquals(WorkOrderStatus.DELIVERED, workOrder.getStatus());
+        assertEquals("Juan Perez", workOrder.getDeliveredTo());
+        assertEquals(50010L, workOrder.getFinalMileage());
+    }
+
+    @Test
+    void shouldNotDeliverCancelledWorkOrder() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.CANCELLED);
+        workOrder.setCurrentMileage(50000L);
+
+        InvalidStatusTransitionException exception = assertThrows(
+                InvalidStatusTransitionException.class,
+                () -> workOrder.deliver("Juan Perez", 50010L)
+        );
+
+        assertEquals("A cancelled work order cannot move to another status", exception.getMessage());
+    }
+
     private WorkOrder workOrderWithStatus(WorkOrderStatus status) {
         WorkOrder workOrder = new WorkOrder();
         workOrder.setStatus(status);
