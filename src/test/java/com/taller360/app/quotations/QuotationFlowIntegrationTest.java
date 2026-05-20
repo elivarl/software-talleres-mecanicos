@@ -174,6 +174,14 @@ class QuotationFlowIntegrationTest {
                 .andExpect(jsonPath("$.message").value("A quotation without items cannot be sent"));
     }
 
+    @Test
+    void shouldRequireAuthenticationForPrivateQuotationEndpoints() throws Exception {
+        WorkOrder workOrder = seedWorkOrder();
+
+        mockMvc.perform(post("/api/work-orders/{id}/quotation", workOrder.getId()))
+                .andExpect(status().isUnauthorized());
+    }
+
     private WorkOrder seedWorkOrder() {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
 

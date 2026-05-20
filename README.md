@@ -1,58 +1,20 @@
 # Taller360 Backend
 
-Backend MVP para la gestion operativa de talleres mecanicos. Actualmente incluye autenticacion JWT, usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con aprobacion publica, inventario, repuestos usados, mano de obra, quality control, entrega del vehiculo, historial completo del vehiculo y dashboard operativo.
+Backend MVP para la gestion operativa de talleres mecanicos en Ecuador. Cubre el flujo completo desde la recepcion del vehiculo hasta su entrega, incluyendo inspeccion inicial, diagnostico, cotizacion con aprobacion publica, ejecucion del trabajo, repuestos usados, mano de obra, quality control, historial del vehiculo y dashboard operativo.
 
-## Stack
+## Stack tecnico
 
 - Java 21
 - Spring Boot 3.5
 - Gradle
 - Spring Web
 - Spring Data JPA
-- Spring Security
 - Spring Validation
+- Spring Security con JWT
 - Flyway
 - MySQL
 - JUnit 5
-
-## Alcance actual
-
-Implementado:
-
-- Configuracion base del proyecto con Gradle.
-- Estructura modular bajo `com.taller360.app`.
-- Configuracion de MySQL.
-- Migraciones con Flyway.
-- Manejo global de errores.
-- Seguridad JWT stateless.
-- Modulos `auth`, `users`, `customers`, `vehicles`, `workorders`, `inspections`, `quotations`, `inventory`, `labor` y `dashboard`.
-- Historial completo del vehiculo.
-- Seed inicial de usuario ADMIN.
-
-## Estructura base
-
-```text
-com.taller360.app
-|-- auth
-|-- customers
-|-- dashboard
-|-- inventory
-|-- inspections
-|-- labor
-|-- quotations
-|-- security
-|-- shared
-|-- users
-|-- vehicles
-`-- workorders
-```
-
-Cada modulo sigue esta estructura:
-
-- `application`: casos de uso y DTOs.
-- `domain`: entidades y enums.
-- `infrastructure`: repositorios.
-- `web`: controladores.
+- Mockito
 
 ## Requisitos
 
@@ -60,9 +22,43 @@ Cada modulo sigue esta estructura:
 - Gradle 8+
 - MySQL 8+
 
-## Configuracion
+## Estructura
 
-Variables soportadas por `application.yaml`:
+Base package: `com.taller360.app`
+
+Modulos implementados:
+
+- `auth`
+- `users`
+- `customers`
+- `vehicles`
+- `workorders`
+- `inspections`
+- `quotations`
+- `inventory`
+- `labor`
+- `dashboard`
+- `security`
+- `shared`
+
+Cada modulo usa la estructura:
+
+- `domain`
+- `application`
+- `infrastructure`
+- `web`
+
+## Configuracion de base de datos
+
+Crear la base si no quieres usar `createDatabaseIfNotExist=true`:
+
+```sql
+CREATE DATABASE taller360 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+## Variables y properties
+
+`application.yaml` soporta:
 
 - `DB_URL`
 - `DB_USERNAME`
@@ -78,24 +74,13 @@ DB_URL=jdbc:mysql://localhost:3306/taller360?createDatabaseIfNotExist=true&useSS
 DB_USERNAME=root
 DB_PASSWORD=root
 APP_TAX_RATE=0.15
+JWT_SECRET=Taller360JwtSecretKeyForDevelopmentOnly1234567890
 JWT_EXPIRATION_SECONDS=3600
-```
-
-## Base de datos
-
-Si prefieres crear la base manualmente:
-
-```sql
-CREATE DATABASE taller360 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
 ## Migraciones Flyway
 
-Las migraciones viven en:
-
-```text
-src/main/resources/db/migration
-```
+Las migraciones viven en `src/main/resources/db/migration` y se ejecutan automaticamente al iniciar la aplicacion.
 
 Migraciones actuales:
 
@@ -114,11 +99,9 @@ Migraciones actuales:
 - `V13__create_work_order_parts_table.sql`
 - `V14__create_labor_items_table.sql`
 
-Flyway se ejecuta automaticamente al iniciar la aplicacion.
+## Como ejecutar
 
-## Ejecucion
-
-Iniciar la aplicacion:
+Levantar la aplicacion:
 
 ```bash
 ./gradlew bootRun
@@ -136,7 +119,7 @@ Ejecutar pruebas:
 - Password: `Admin12345*`
 - Role: `ADMIN`
 
-## Endpoints disponibles
+## Endpoints principales
 
 Autenticacion:
 
@@ -153,7 +136,6 @@ Usuarios:
 Clientes:
 
 - `GET /api/customers`
-- `GET /api/customers?search={value}`
 - `POST /api/customers`
 - `GET /api/customers/{id}`
 - `PUT /api/customers/{id}`
@@ -161,7 +143,6 @@ Clientes:
 Vehiculos:
 
 - `GET /api/vehicles`
-- `GET /api/vehicles?plate={value}`
 - `POST /api/vehicles`
 - `GET /api/vehicles/{id}`
 - `PUT /api/vehicles/{id}`
@@ -171,7 +152,6 @@ Vehiculos:
 Ordenes de trabajo:
 
 - `GET /api/work-orders`
-- `GET /api/work-orders?status={status}&plate={plate}&customerId={customerId}&receptionDateFrom={yyyy-MM-dd}&receptionDateTo={yyyy-MM-dd}`
 - `POST /api/work-orders`
 - `GET /api/work-orders/{id}`
 - `PATCH /api/work-orders/{id}/assign-mechanic`
@@ -208,7 +188,6 @@ Cotizaciones publicas:
 Inventario:
 
 - `GET /api/inventory`
-- `GET /api/inventory?search={value}`
 - `POST /api/inventory`
 - `GET /api/inventory/{id}`
 - `PUT /api/inventory/{id}`
@@ -221,7 +200,7 @@ Repuestos usados:
 - `GET /api/work-orders/{id}/parts`
 - `DELETE /api/work-orders/{id}/parts/{partId}`
 
-Labor:
+Mano de obra:
 
 - `POST /api/work-orders/{id}/labor`
 - `GET /api/work-orders/{id}/labor`
@@ -231,118 +210,344 @@ Dashboard:
 
 - `GET /api/dashboard`
 
-## Reglas principales implementadas
+## Reglas de negocio principales
 
+- Los endpoints privados requieren JWT.
+- Los endpoints publicos de cotizaciones no requieren autenticacion.
 - Solo `ADMIN` puede administrar usuarios, inventario y dashboard.
-- `ADMIN` y `RECEPTIONIST` pueden gestionar clientes, vehiculos, work orders e inspecciones.
-- `ADMIN` y `RECEPTIONIST` pueden gestionar cotizaciones privadas.
-- `ADMIN` y `MECHANIC` pueden registrar repuestos usados, mano de obra y quality control.
-- `users.email`, `vehicles.plate` e `inventory_items.sku` son unicos.
-- `customers.identification` es unico si se registra.
-- Las contrasenas se almacenan con BCrypt y los usuarios inactivos no pueden autenticarse.
-- `work_orders.code` se genera con formato `OT-000001`.
-- `quotations.code` se genera con formato `COT-000001`.
+- Solo `ADMIN` y `RECEPTIONIST` pueden gestionar clientes, vehiculos, work orders, inspecciones y cotizaciones privadas.
+- Solo `ADMIN` y `MECHANIC` pueden registrar repuestos usados, mano de obra y quality control.
+- Las contrasenas se almacenan con BCrypt.
+- Los usuarios inactivos no pueden autenticarse.
+- `work_orders.code` se genera como `OT-000001`.
+- `quotations.code` se genera como `COT-000001`.
 - Una orden inicia en `RECEIVED`.
-- `RECEIVED -> DIAGNOSIS` es valido.
-- No se puede mover a `IN_PROGRESS` si la orden no esta `APPROVED`.
-- No se puede mover a `READY` sin quality control completo.
-- No se puede mover a `DELIVERED` si la orden no esta `READY`.
-- Una orden `CANCELLED` no puede moverse a otro estado.
-- Una orden `DELIVERED` o `CANCELLED` no permite modificaciones importantes.
-- Una orden solo puede tener una inspeccion inicial.
-- La inspeccion no puede modificarse si la orden esta `DELIVERED` o `CANCELLED`.
-- Solo cotizaciones `DRAFT` pueden modificarse.
+- `RECEIVED -> DIAGNOSIS -> QUOTED -> APPROVED -> IN_PROGRESS -> READY -> DELIVERED`.
+- `QUOTED -> REJECTED`.
+- `RECEIVED`, `DIAGNOSIS` o `QUOTED` pueden pasar a `CANCELLED`.
+- Una orden `DELIVERED` o `CANCELLED` bloquea modificaciones importantes.
+- Una cotizacion solo puede modificarse si esta en `DRAFT`.
 - No se puede enviar una cotizacion sin items.
-- Al enviar una cotizacion, la orden cambia a `QUOTED`.
-- Al aprobar una cotizacion, la orden cambia a `APPROVED`.
-- Al rechazar una cotizacion, la orden cambia a `REJECTED`.
-- `subtotal`, `tax` y `total` se calculan con `app.tax-rate`.
+- Al enviar una cotizacion, la orden pasa a `QUOTED`.
+- Al aprobar una cotizacion, la orden pasa a `APPROVED`.
+- Al rechazar una cotizacion, la orden pasa a `REJECTED`.
 - Los repuestos usados solo pueden agregarse cuando la orden esta `APPROVED` o `IN_PROGRESS`.
-- Al registrar un repuesto usado, el stock se descuenta automaticamente.
-- Si no hay stock suficiente, el registro se rechaza.
-- Un item inactivo no puede usarse en nuevos work orders.
-- Al eliminar un repuesto usado antes de entregar, el stock se restaura.
+- Al registrar un repuesto usado se descuenta stock.
+- Si se elimina un repuesto usado antes de entregar, el stock se restaura.
 - La mano de obra solo puede agregarse cuando la orden esta `APPROVED` o `IN_PROGRESS`.
-- La mano de obra no puede eliminarse de una orden `DELIVERED`.
-- El quality control solo puede completarse si la orden esta `IN_PROGRESS`.
-- Una orden solo puede pasar a `READY` si esta `IN_PROGRESS` y `qualityControlCompleted` es `true`.
-- Solo una orden en estado `READY` puede entregarse.
-- Al entregar, se registran `deliveredAt`, `deliveredTo` y `finalMileage`.
+- `qualityControlCompleted` debe ser `true` para marcar una orden como `READY`.
+- Solo una orden en `READY` puede entregarse.
 - `finalMileage` debe ser mayor o igual a `currentMileage`.
-- El historial del vehiculo se ordena de mas reciente a mas antiguo y no expone `internalNotes`.
-- `GET /api/dashboard` es solo para `ADMIN`.
-- `lowStockItems` incluye items donde `currentStock <= minStock`.
+- El historial del vehiculo no expone `internalNotes`.
+- `lowStockItems` son items con `currentStock <= minStock`.
+- `estimatedRevenueThisMonth` se calcula como `used parts total + labor items` de work orders del mes actual, excluyendo `CANCELLED` y `REJECTED`.
 
-## Historial del vehiculo
+## Flujo completo de prueba
 
-Los endpoints `GET /api/vehicles/{id}/history` y `GET /api/vehicles/by-plate/{plate}/history` devuelven:
+Todas las requests privadas deben incluir:
 
-- Datos del vehiculo.
-- Datos del cliente actual.
-- Ordenes asociadas al vehiculo desde la mas reciente hasta la mas antigua.
-- Diagnostico, estado final y fechas relevantes por orden.
-- Inspeccion inicial si existe.
-- Cotizacion si existe.
-- Repuestos usados.
-- Mano de obra.
-- Totales basicos por orden.
-- Kilometraje registrado y entrega si aplica.
+```http
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
 
-## Dashboard operativo
+### 1. Login
 
-El endpoint `GET /api/dashboard` devuelve:
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@taller360.com",
+    "password": "Admin12345*"
+  }'
+```
 
-- `totalWorkOrdersThisMonth`
-- `workOrdersByStatus`
-- `estimatedRevenueThisMonth`
-- `pendingWorkOrders`
-- `readyToDeliverWorkOrders`
-- `lowStockItems`
-- `deliveredWorkOrdersThisMonth`
+Guardar `accessToken`.
 
-Criterio de ingresos estimados del MVP:
+### 2. Crear cliente
 
-- Se calcula como `used parts total + labor items`.
-- Solo cuenta work orders cuya `receptionDate` pertenece al mes actual.
-- Excluye work orders en estado `CANCELLED` y `REJECTED`.
+```bash
+curl -X POST http://localhost:8080/api/customers \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fullName": "Juan Perez",
+    "identification": "0912345678",
+    "phone": "0999999999",
+    "email": "juan@example.com",
+    "address": "Guayaquil"
+  }'
+```
 
-Otros criterios del dashboard:
+### 3. Crear vehiculo
 
-- `totalWorkOrdersThisMonth` usa `receptionDate` dentro del mes actual.
-- `workOrdersByStatus` muestra el conteo actual agrupado por estado.
-- `pendingWorkOrders` cuenta ordenes abiertas, es decir, todas excepto `DELIVERED`, `CANCELLED` y `REJECTED`.
-- `readyToDeliverWorkOrders` cuenta ordenes con estado `READY`.
-- `deliveredWorkOrdersThisMonth` cuenta ordenes `DELIVERED` con `deliveredAt` dentro del mes actual.
+```bash
+curl -X POST http://localhost:8080/api/vehicles \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 1,
+    "plate": "ABC-1234",
+    "brand": "Toyota",
+    "model": "Corolla",
+    "year": 2020,
+    "color": "Plata",
+    "vin": "JTDBR32E720123456",
+    "mileage": 85000
+  }'
+```
 
-## Flujo basico de prueba
+### 4. Crear orden de trabajo
 
-1. Iniciar la aplicacion.
-2. Hacer login con el usuario ADMIN seed.
-3. Usar el token JWT en `Authorization: Bearer <token>`.
-4. Crear y consultar clientes.
-5. Registrar y consultar vehiculos.
-6. Crear una orden de trabajo.
-7. Registrar diagnostico.
-8. Registrar inspeccion inicial y fotos simuladas por URL.
-9. Crear cotizacion, agregar items y enviarla.
-10. Consultar, aprobar o rechazar la cotizacion mediante el endpoint publico.
-11. Crear items de inventario.
-12. Registrar repuestos usados sobre una orden aprobada o en progreso.
-13. Registrar items de mano de obra sobre una orden aprobada o en progreso.
-14. Completar quality control.
-15. Marcar la orden como `READY`.
-16. Entregar el vehiculo y verificar estado `DELIVERED`.
-17. Consultar historial completo por id o por placa.
-18. Consultar el dashboard operativo.
+```bash
+curl -X POST http://localhost:8080/api/work-orders \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customerId": 1,
+    "vehicleId": 1,
+    "receptionDate": "2026-05-20T09:00:00",
+    "estimatedDeliveryDate": "2026-05-23",
+    "currentMileage": 85000,
+    "fuelLevel": "Half",
+    "customerComplaint": "Ruido al frenar",
+    "initialObservations": "Vehiculo ingresa con rayones leves"
+  }'
+```
 
-## Fuera de alcance del MVP
+### 5. Registrar inspeccion inicial
+
+```bash
+curl -X POST http://localhost:8080/api/work-orders/1/inspection \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mileage": 85000,
+    "fuelLevel": "Half",
+    "exteriorCondition": "Good",
+    "visibleScratches": "Leves rayones en parachoque",
+    "visibleDents": null,
+    "lightsWorking": true,
+    "tiresCondition": "Good",
+    "mirrorsCondition": "Good",
+    "hasSpareTire": true,
+    "hasJack": true,
+    "hasTools": true,
+    "hasDocuments": true,
+    "personalItemsNotes": "Radio desmontable",
+    "generalNotes": "Sin novedades mayores"
+  }'
+```
+
+### 6. Agregar fotos simuladas
+
+```bash
+curl -X POST http://localhost:8080/api/inspections/1/photos \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "photoUrl": "https://example.com/photos/front-view.jpg",
+    "description": "Vista frontal"
+  }'
+```
+
+### 7. Cambiar la orden a DIAGNOSIS
+
+```bash
+curl -X PATCH http://localhost:8080/api/work-orders/1/status \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status":"DIAGNOSIS"}'
+```
+
+### 8. Registrar diagnostico
+
+```bash
+curl -X PATCH http://localhost:8080/api/work-orders/1/diagnosis \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "diagnosis": "Desgaste avanzado en pastillas de freno delanteras"
+  }'
+```
+
+### 9. Crear cotizacion
+
+```bash
+curl -X POST http://localhost:8080/api/work-orders/1/quotation \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 10. Agregar items a la cotizacion
+
+```bash
+curl -X POST http://localhost:8080/api/quotations/1/items \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "PART",
+    "description": "Pastillas de freno",
+    "quantity": 1,
+    "unitPrice": 45.00
+  }'
+```
+
+```bash
+curl -X POST http://localhost:8080/api/quotations/1/items \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "LABOR",
+    "description": "Cambio de pastillas",
+    "quantity": 1,
+    "unitPrice": 25.00
+  }'
+```
+
+### 11. Enviar cotizacion
+
+```bash
+curl -X POST http://localhost:8080/api/quotations/1/send \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Guardar `publicToken`.
+
+### 12. Abrir endpoint publico
+
+```bash
+curl http://localhost:8080/api/public/quotations/<publicToken>
+```
+
+### 13. Aprobar cotizacion
+
+```bash
+curl -X POST http://localhost:8080/api/public/quotations/<publicToken>/approve
+```
+
+### 14. Verificar orden APPROVED
+
+```bash
+curl http://localhost:8080/api/work-orders/1 \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 15. Cambiar a IN_PROGRESS
+
+```bash
+curl -X PATCH http://localhost:8080/api/work-orders/1/status \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"status":"IN_PROGRESS"}'
+```
+
+### 16. Registrar repuestos usados
+
+Primero crear inventario:
+
+```bash
+curl -X POST http://localhost:8080/api/inventory \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Pastillas de freno delanteras",
+    "sku": "PAD-001",
+    "description": "Juego delantero",
+    "currentStock": 10,
+    "minStock": 2,
+    "unitCost": 20,
+    "salePrice": 45,
+    "active": true
+  }'
+```
+
+Luego registrar el uso:
+
+```bash
+curl -X POST http://localhost:8080/api/work-orders/1/parts \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "inventoryItemId": 1,
+    "quantity": 1
+  }'
+```
+
+### 17. Registrar mano de obra
+
+```bash
+curl -X POST http://localhost:8080/api/work-orders/1/labor \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Cambio de pastillas y limpieza",
+    "price": 25
+  }'
+```
+
+### 18. Completar quality control
+
+```bash
+curl -X PATCH http://localhost:8080/api/work-orders/1/quality-control \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "completed": true,
+    "notes": "Prueba de ruta y frenado correcto"
+  }'
+```
+
+### 19. Marcar READY
+
+```bash
+curl -X PATCH http://localhost:8080/api/work-orders/1/mark-ready \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 20. Entregar vehiculo
+
+```bash
+curl -X PATCH http://localhost:8080/api/work-orders/1/deliver \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "deliveredTo": "Juan Perez",
+    "finalMileage": 85010
+  }'
+```
+
+### 21. Consultar historial del vehiculo
+
+```bash
+curl http://localhost:8080/api/vehicles/1/history \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+O por placa:
+
+```bash
+curl http://localhost:8080/api/vehicles/by-plate/ABC-1234/history \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 22. Consultar dashboard
+
+```bash
+curl http://localhost:8080/api/dashboard \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## Funcionalidades fuera del MVP
 
 - Frontend.
 - Facturacion SRI real.
-- Integraciones con WhatsApp o pagos online.
+- API real de WhatsApp.
+- Pagos online.
 - Multitenancy.
+- Microservicios.
+- Kafka o RabbitMQ.
 - Subida real de imagenes.
-- Microservicios, Kafka o RabbitMQ.
+- Dashboard avanzado o reporteria compleja.
 - Contabilidad completa.
-- Reporteria compleja.
-- Soporte multi-sucursal.
+- Garantias avanzadas.
+- Comisiones de mecanicos.

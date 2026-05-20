@@ -24,6 +24,18 @@ class QuotationTest {
     }
 
     @Test
+    void shouldOnlyAllowModifyingDraftQuotationsWhenRejected() {
+        Quotation quotation = quotationWithStatus(QuotationStatus.REJECTED);
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                quotation::ensureDraftEditable
+        );
+
+        assertEquals("Only DRAFT quotations can be modified", exception.getMessage());
+    }
+
+    @Test
     void shouldNotSendQuotationWithoutItems() {
         Quotation quotation = quotationWithStatus(QuotationStatus.DRAFT);
 
