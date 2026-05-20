@@ -1,6 +1,6 @@
 # Taller360 Backend
 
-Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con flujo publico de aprobacion o rechazo, inventario y registro de repuestos usados.
+Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con flujo publico de aprobacion o rechazo, inventario, registro de repuestos usados y mano de obra.
 
 ## Stack
 
@@ -33,12 +33,12 @@ Implementado:
 - Modulo `inspections`.
 - Modulo `quotations`.
 - Modulo `inventory`.
+- Modulo `labor`.
 - Seed inicial de usuario ADMIN.
 - Endpoints base de historial del vehiculo.
 
 Todavia no implementado:
 
-- Labor
 - Quality control
 - Delivery
 - Dashboard
@@ -124,6 +124,7 @@ Migraciones actuales:
 - `V11__create_quotation_items_table.sql`
 - `V12__create_inventory_items_table.sql`
 - `V13__create_work_order_parts_table.sql`
+- `V14__create_labor_items_table.sql`
 
 Flyway se ejecuta automaticamente al iniciar la aplicacion.
 
@@ -229,6 +230,12 @@ Repuestos usados:
 - `GET /api/work-orders/{id}/parts`
 - `DELETE /api/work-orders/{id}/parts/{partId}`
 
+Labor:
+
+- `POST /api/work-orders/{id}/labor`
+- `GET /api/work-orders/{id}/labor`
+- `DELETE /api/work-orders/{id}/labor/{laborId}`
+
 ## Reglas implementadas hasta ahora
 
 - Solo `ADMIN` puede administrar usuarios.
@@ -237,6 +244,7 @@ Repuestos usados:
 - `ADMIN` y `RECEPTIONIST` pueden crear y gestionar cotizaciones.
 - `ADMIN` puede gestionar inventario.
 - `ADMIN` y `MECHANIC` pueden registrar y eliminar repuestos usados.
+- `ADMIN` y `MECHANIC` pueden registrar y eliminar mano de obra.
 - `MECHANIC` puede consultar ordenes y registrar diagnostico o notas internas.
 - `users.email` es unico.
 - `customers.identification` es unico si se registra.
@@ -273,6 +281,11 @@ Repuestos usados:
 - Al eliminar un repuesto usado antes de entregar, el stock se restaura.
 - `total` de repuesto usado = `salePrice * quantity`.
 - `margin` de repuesto usado = `(salePrice - unitCost) * quantity`.
+- La mano de obra solo puede agregarse cuando la orden esta `APPROVED` o `IN_PROGRESS`.
+- La mano de obra no puede agregarse si la orden esta `RECEIVED`, `DIAGNOSIS`, `QUOTED`, `REJECTED`, `READY`, `DELIVERED` o `CANCELLED`.
+- La mano de obra no puede eliminarse de una orden `DELIVERED`.
+- `description` de mano de obra es obligatorio.
+- `price` de mano de obra debe ser mayor o igual a 0.
 - Los endpoints privados requieren JWT, salvo `POST /api/auth/login`.
 - Los endpoints publicos de cotizaciones no requieren JWT.
 
@@ -300,7 +313,8 @@ Ahora `workOrders` devuelve un resumen basico con id, codigo, fecha de recepcion
 10. Consultar, aprobar o rechazar la cotizacion mediante el endpoint publico.
 11. Crear items de inventario.
 12. Registrar repuestos usados sobre una orden aprobada o en progreso.
-13. Consultar historial base por id o por placa.
+13. Registrar items de mano de obra sobre una orden aprobada o en progreso.
+14. Consultar historial base por id o por placa.
 
 ## Fuera de alcance por ahora
 

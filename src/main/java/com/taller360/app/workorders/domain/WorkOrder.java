@@ -220,6 +220,18 @@ public class WorkOrder {
         }
     }
 
+    public void ensureAllowsLaborRegistration() {
+        if (this.status != WorkOrderStatus.APPROVED && this.status != WorkOrderStatus.IN_PROGRESS) {
+            throw new BusinessRuleException("Labor can only be added when the work order is APPROVED or IN_PROGRESS");
+        }
+    }
+
+    public void ensureAllowsLaborDeletion() {
+        if (this.status == WorkOrderStatus.DELIVERED) {
+            throw new BusinessRuleException("Labor cannot be deleted from a DELIVERED work order");
+        }
+    }
+
     public void ensureImportantFieldsAreModifiable() {
         if (this.status == WorkOrderStatus.DELIVERED) {
             throw new BusinessRuleException("A delivered work order cannot be modified");

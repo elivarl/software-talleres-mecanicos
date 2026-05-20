@@ -92,6 +92,30 @@ class WorkOrderTest {
         assertEquals("Brake pads need replacement", workOrder.getDiagnosis());
     }
 
+    @Test
+    void shouldNotAllowLaborRegistrationIfWorkOrderIsNotApprovedOrInProgress() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.READY);
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                workOrder::ensureAllowsLaborRegistration
+        );
+
+        assertEquals("Labor can only be added when the work order is APPROVED or IN_PROGRESS", exception.getMessage());
+    }
+
+    @Test
+    void shouldNotAllowLaborDeletionIfWorkOrderIsDelivered() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.DELIVERED);
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                workOrder::ensureAllowsLaborDeletion
+        );
+
+        assertEquals("Labor cannot be deleted from a DELIVERED work order", exception.getMessage());
+    }
+
     private WorkOrder workOrderWithStatus(WorkOrderStatus status) {
         WorkOrder workOrder = new WorkOrder();
         workOrder.setStatus(status);
