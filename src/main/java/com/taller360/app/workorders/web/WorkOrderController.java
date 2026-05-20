@@ -5,6 +5,7 @@ import com.taller360.app.workorders.application.dto.AssignMechanicRequest;
 import com.taller360.app.workorders.application.dto.CreateWorkOrderRequest;
 import com.taller360.app.workorders.application.dto.UpdateDiagnosisRequest;
 import com.taller360.app.workorders.application.dto.UpdateInternalNotesRequest;
+import com.taller360.app.workorders.application.dto.UpdateQualityControlRequest;
 import com.taller360.app.workorders.application.dto.UpdateWorkOrderStatusRequest;
 import com.taller360.app.workorders.application.dto.WorkOrderResponse;
 import com.taller360.app.workorders.domain.WorkOrderStatus;
@@ -83,5 +84,17 @@ public class WorkOrderController {
     @PreAuthorize("hasAnyRole('ADMIN','RECEPTIONIST','MECHANIC')")
     public WorkOrderResponse updateInternalNotes(@PathVariable Long id, @Valid @RequestBody UpdateInternalNotesRequest request) {
         return workOrderService.updateInternalNotes(id, request);
+    }
+
+    @PatchMapping("/{id}/quality-control")
+    @PreAuthorize("hasAnyRole('ADMIN','MECHANIC')")
+    public WorkOrderResponse updateQualityControl(@PathVariable Long id, @Valid @RequestBody UpdateQualityControlRequest request) {
+        return workOrderService.updateQualityControl(id, request);
+    }
+
+    @PatchMapping("/{id}/mark-ready")
+    @PreAuthorize("hasAnyRole('ADMIN','MECHANIC')")
+    public WorkOrderResponse markReady(@PathVariable Long id) {
+        return workOrderService.markReady(id);
     }
 }

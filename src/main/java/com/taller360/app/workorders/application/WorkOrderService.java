@@ -13,6 +13,7 @@ import com.taller360.app.workorders.application.dto.AssignMechanicRequest;
 import com.taller360.app.workorders.application.dto.CreateWorkOrderRequest;
 import com.taller360.app.workorders.application.dto.UpdateDiagnosisRequest;
 import com.taller360.app.workorders.application.dto.UpdateInternalNotesRequest;
+import com.taller360.app.workorders.application.dto.UpdateQualityControlRequest;
 import com.taller360.app.workorders.application.dto.UpdateWorkOrderStatusRequest;
 import com.taller360.app.workorders.application.dto.WorkOrderResponse;
 import com.taller360.app.workorders.domain.WorkOrder;
@@ -129,6 +130,25 @@ public class WorkOrderService {
     public WorkOrderResponse updateInternalNotes(Long id, UpdateInternalNotesRequest request) {
         WorkOrder workOrder = getWorkOrderEntity(id);
         workOrder.updateInternalNotes(request.internalNotes().trim());
+        return toResponse(workOrder);
+    }
+
+    @Transactional
+    public WorkOrderResponse updateQualityControl(Long id, UpdateQualityControlRequest request) {
+        WorkOrder workOrder = getWorkOrderEntity(id);
+
+        if (!request.completed()) {
+            throw new BusinessRuleException("Quality control can only be marked as completed");
+        }
+
+        workOrder.completeQualityControl(normalizeNullable(request.notes()));
+        return toResponse(workOrder);
+    }
+
+    @Transactional
+    public WorkOrderResponse markReady(Long id) {
+        WorkOrder workOrder = getWorkOrderEntity(id);
+        workOrder.markReady();
         return toResponse(workOrder);
     }
 

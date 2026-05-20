@@ -1,6 +1,6 @@
 # Taller360 Backend
 
-Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con flujo publico de aprobacion o rechazo, inventario, registro de repuestos usados y mano de obra.
+Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con flujo publico de aprobacion o rechazo, inventario, registro de repuestos usados, mano de obra, quality control y marcado de ordenes listas para retiro.
 
 ## Stack
 
@@ -39,7 +39,6 @@ Implementado:
 
 Todavia no implementado:
 
-- Quality control
 - Delivery
 - Dashboard
 
@@ -190,6 +189,8 @@ Ordenes de trabajo:
 - `PATCH /api/work-orders/{id}/status`
 - `PATCH /api/work-orders/{id}/diagnosis`
 - `PATCH /api/work-orders/{id}/internal-notes`
+- `PATCH /api/work-orders/{id}/quality-control`
+- `PATCH /api/work-orders/{id}/mark-ready`
 
 Inspecciones:
 
@@ -245,6 +246,7 @@ Labor:
 - `ADMIN` puede gestionar inventario.
 - `ADMIN` y `MECHANIC` pueden registrar y eliminar repuestos usados.
 - `ADMIN` y `MECHANIC` pueden registrar y eliminar mano de obra.
+- `ADMIN` y `MECHANIC` pueden completar quality control y marcar ordenes como `READY`.
 - `MECHANIC` puede consultar ordenes y registrar diagnostico o notas internas.
 - `users.email` es unico.
 - `customers.identification` es unico si se registra.
@@ -286,6 +288,12 @@ Labor:
 - La mano de obra no puede eliminarse de una orden `DELIVERED`.
 - `description` de mano de obra es obligatorio.
 - `price` de mano de obra debe ser mayor o igual a 0.
+- El quality control solo puede completarse si la orden esta `IN_PROGRESS`.
+- El quality control no puede modificarse despues de `DELIVERED`.
+- Una orden solo puede pasar a `READY` si esta `IN_PROGRESS`.
+- Una orden solo puede pasar a `READY` si `qualityControlCompleted` es `true`.
+- `READY` significa que el trabajo termino, pero el cliente todavia no retira el vehiculo.
+- Una orden `REJECTED` o `CANCELLED` no puede pasar a `READY`.
 - Los endpoints privados requieren JWT, salvo `POST /api/auth/login`.
 - Los endpoints publicos de cotizaciones no requieren JWT.
 
@@ -314,7 +322,9 @@ Ahora `workOrders` devuelve un resumen basico con id, codigo, fecha de recepcion
 11. Crear items de inventario.
 12. Registrar repuestos usados sobre una orden aprobada o en progreso.
 13. Registrar items de mano de obra sobre una orden aprobada o en progreso.
-14. Consultar historial base por id o por placa.
+14. Completar quality control.
+15. Marcar la orden como `READY`.
+16. Consultar historial base por id o por placa.
 
 ## Fuera de alcance por ahora
 

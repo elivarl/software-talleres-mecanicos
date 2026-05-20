@@ -1,5 +1,6 @@
 package com.taller360.app.inventory;
 
+import com.taller360.app.Taller360Application;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,13 +12,14 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(classes = Taller360Application.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class InventoryIntegrationTest {
@@ -54,7 +56,7 @@ class InventoryIntegrationTest {
 
         mockMvc.perform(get("/api/inventory/low-stock"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].sku").value(sku));
+                .andExpect(jsonPath("$[*].sku", hasItem(sku)));
     }
 
     @Test

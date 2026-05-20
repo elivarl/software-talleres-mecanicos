@@ -1,5 +1,6 @@
 package com.taller360.app.vehicles.web;
 
+import com.taller360.app.Taller360Application;
 import com.taller360.app.customers.domain.Customer;
 import com.taller360.app.customers.infrastructure.CustomerRepository;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(classes = Taller360Application.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class VehicleControllerIntegrationTest {

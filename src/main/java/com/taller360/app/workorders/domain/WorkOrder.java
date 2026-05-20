@@ -145,15 +145,7 @@ public class WorkOrder {
                 }
                 this.status = WorkOrderStatus.IN_PROGRESS;
             }
-            case READY -> {
-                if (!this.qualityControlCompleted) {
-                    throw new InvalidStatusTransitionException("Cannot move to READY unless quality control is completed");
-                }
-                if (this.status != WorkOrderStatus.IN_PROGRESS) {
-                    throw new InvalidStatusTransitionException("Cannot move to READY if work order is not IN_PROGRESS");
-                }
-                this.status = WorkOrderStatus.READY;
-            }
+            case READY -> markReady();
             case DELIVERED -> {
                 if (this.status != WorkOrderStatus.READY) {
                     throw new InvalidStatusTransitionException("Cannot move to DELIVERED if work order is not READY");
@@ -182,6 +174,35 @@ public class WorkOrder {
     public void updateInternalNotes(String internalNotes) {
         ensureImportantFieldsAreModifiable();
         this.internalNotes = internalNotes;
+    }
+
+    public void completeQualityControl(String notes) {
+        if (this.status == WorkOrderStatus.DELIVERED) {
+            throw new BusinessRuleException("Quality control cannot be modified after DELIVERED");
+        }
+        if (this.status != WorkOrderStatus.IN_PROGRESS) {
+            throw new BusinessRuleException("Quality control can only be completed if work order is IN_PROGRESS");
+        }
+
+        this.qualityControlCompleted = true;
+        this.qualityControlNotes = notes;
+    }
+
+    public void markReady() {
+        if (this.status == WorkOrderStatus.CANCELLED) {
+            throw new InvalidStatusTransitionException("A cancelled work order cannot move to another status");
+        }
+        if (this.status == WorkOrderStatus.DELIVERED) {
+            throw new InvalidStatusTransitionException("A delivered work order cannot change status");
+        }
+        if (!this.qualityControlCompleted) {
+            throw new InvalidStatusTransitionException("Cannot move to READY unless quality control is completed");
+        }
+        if (this.status != WorkOrderStatus.IN_PROGRESS) {
+            throw new InvalidStatusTransitionException("Cannot move to READY if work order is not IN_PROGRESS");
+        }
+        this.status = WorkOrderStatus.READY;
+        this.readyAt = LocalDateTime.now();
     }
 
     public void markQuotedFromQuotationSent() {

@@ -116,6 +116,67 @@ class WorkOrderTest {
         assertEquals("Labor cannot be deleted from a DELIVERED work order", exception.getMessage());
     }
 
+    @Test
+    void shouldNotCompleteQualityControlIfWorkOrderIsNotInProgress() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.APPROVED);
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                () -> workOrder.completeQualityControl("Road test completed")
+        );
+
+        assertEquals("Quality control can only be completed if work order is IN_PROGRESS", exception.getMessage());
+    }
+
+    @Test
+    void shouldNotModifyQualityControlAfterDelivered() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.DELIVERED);
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                () -> workOrder.completeQualityControl("Road test completed")
+        );
+
+        assertEquals("Quality control cannot be modified after DELIVERED", exception.getMessage());
+    }
+
+    @Test
+    void shouldMarkWorkOrderReadyWhenQualityControlIsCompleted() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.IN_PROGRESS);
+        workOrder.completeQualityControl("Final inspection passed");
+
+        workOrder.markReady();
+
+        assertEquals(WorkOrderStatus.READY, workOrder.getStatus());
+        assertEquals("Final inspection passed", workOrder.getQualityControlNotes());
+    }
+
+    @Test
+    void shouldNotMarkRejectedWorkOrderReady() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.REJECTED);
+        workOrder.setQualityControlCompleted(true);
+
+        InvalidStatusTransitionException exception = assertThrows(
+                InvalidStatusTransitionException.class,
+                workOrder::markReady
+        );
+
+        assertEquals("Cannot move to READY if work order is not IN_PROGRESS", exception.getMessage());
+    }
+
+    @Test
+    void shouldNotMarkCancelledWorkOrderReady() {
+        WorkOrder workOrder = workOrderWithStatus(WorkOrderStatus.CANCELLED);
+        workOrder.setQualityControlCompleted(true);
+
+        InvalidStatusTransitionException exception = assertThrows(
+                InvalidStatusTransitionException.class,
+                workOrder::markReady
+        );
+
+        assertEquals("A cancelled work order cannot move to another status", exception.getMessage());
+    }
+
     private WorkOrder workOrderWithStatus(WorkOrderStatus status) {
         WorkOrder workOrder = new WorkOrder();
         workOrder.setStatus(status);

@@ -1,6 +1,7 @@
 package com.taller360.app.labor;
 
 import com.jayway.jsonpath.JsonPath;
+import com.taller360.app.Taller360Application;
 import com.taller360.app.customers.domain.Customer;
 import com.taller360.app.customers.infrastructure.CustomerRepository;
 import com.taller360.app.labor.infrastructure.LaborItemRepository;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(classes = Taller360Application.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class LaborItemIntegrationTest {
