@@ -89,7 +89,7 @@ Use:
 
 - Java 21
 - Spring Boot 3.x
-- Maven
+- Gradle
 - Spring Web
 - Spring Data JPA
 - Spring Validation
