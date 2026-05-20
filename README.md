@@ -1,6 +1,6 @@
 # Taller360 Backend
 
-Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes y vehiculos.
+Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo e inspecciones iniciales.
 
 ## Stack
 
@@ -29,6 +29,8 @@ Implementado:
 - Modulo `users`.
 - Modulo `customers`.
 - Modulo `vehicles`.
+- Modulo `workorders`.
+- Modulo `inspections`.
 - Seed inicial de usuario ADMIN.
 - Endpoints base de historial del vehiculo.
 
@@ -47,10 +49,12 @@ Todavia no implementado:
 com.taller360.app
 ├── auth
 ├── customers
+├── inspections
 ├── security
 ├── shared
 ├── users
-└── vehicles
+├── vehicles
+└── workorders
 ```
 
 Cada modulo sigue esta estructura:
@@ -107,6 +111,10 @@ Migraciones actuales:
 - `V2__insert_seed_admin_user.sql`
 - `V3__create_customers_table.sql`
 - `V4__create_vehicles_table.sql`
+- `V5__create_work_order_sequences_table.sql`
+- `V6__create_work_orders_table.sql`
+- `V7__create_reception_inspections_table.sql`
+- `V8__create_inspection_photos_table.sql`
 
 Flyway se ejecuta automaticamente al iniciar la aplicacion.
 
@@ -162,18 +170,49 @@ Vehiculos:
 - `GET /api/vehicles/{id}/history`
 - `GET /api/vehicles/by-plate/{plate}/history`
 
+Ordenes de trabajo:
+
+- `GET /api/work-orders`
+- `GET /api/work-orders?status={status}&plate={plate}&customerId={customerId}&receptionDateFrom={yyyy-MM-dd}&receptionDateTo={yyyy-MM-dd}`
+- `POST /api/work-orders`
+- `GET /api/work-orders/{id}`
+- `PATCH /api/work-orders/{id}/assign-mechanic`
+- `PATCH /api/work-orders/{id}/status`
+- `PATCH /api/work-orders/{id}/diagnosis`
+- `PATCH /api/work-orders/{id}/internal-notes`
+
+Inspecciones:
+
+- `POST /api/work-orders/{id}/inspection`
+- `GET /api/work-orders/{id}/inspection`
+- `PUT /api/inspections/{id}`
+- `POST /api/inspections/{id}/photos`
+
 ## Reglas implementadas hasta ahora
 
 - Solo `ADMIN` puede administrar usuarios.
 - `ADMIN` y `RECEPTIONIST` pueden gestionar clientes y vehiculos.
+- `ADMIN` y `RECEPTIONIST` pueden crear ordenes, asignar mecanicos y registrar inspecciones.
+- `MECHANIC` puede consultar ordenes y registrar diagnostico o notas internas.
 - `users.email` es unico.
 - `customers.identification` es unico si se registra.
 - `vehicles.plate` es unico.
+- `work_orders.code` se genera automaticamente con formato `OT-000001`.
 - Las contrasenas se almacenan con BCrypt.
 - Los usuarios inactivos no pueden autenticarse.
 - `customerId` es obligatorio al registrar un vehiculo.
 - `mileage` debe ser mayor o igual a 0.
 - `year` del vehiculo debe estar entre 1900 y el siguiente anio calendario.
+- Una orden inicia en `RECEIVED`.
+- `RECEIVED -> DIAGNOSIS` es valido.
+- No se puede mover a `APPROVED`, `REJECTED` o `QUOTED` hasta implementar quotations.
+- No se puede mover a `IN_PROGRESS` si no esta `APPROVED`.
+- No se puede mover a `READY` sin control de calidad completo.
+- No se puede mover a `DELIVERED` si no esta `READY`.
+- Una orden `CANCELLED` no puede moverse a otro estado.
+- Una orden `DELIVERED` o `CANCELLED` no permite modificaciones importantes.
+- Una orden solo puede tener una inspeccion inicial.
+- La inspeccion no puede modificarse si la orden esta `DELIVERED` o `CANCELLED`.
 - Los endpoints privados requieren JWT, salvo `POST /api/auth/login`.
 
 ## Historial base del vehiculo
@@ -184,7 +223,7 @@ Los endpoints de historial del vehiculo ya existen en esta fase y devuelven:
 - Datos del cliente actual.
 - Coleccion `workOrders`.
 
-Por ahora `workOrders` retorna vacio hasta que se implemente el modulo `workorders`.
+Ahora `workOrders` devuelve un resumen basico con id, codigo, fecha de recepcion y estado cuando existen ordenes asociadas.
 
 ## Flujo basico de prueba
 
@@ -193,7 +232,10 @@ Por ahora `workOrders` retorna vacio hasta que se implemente el modulo `workorde
 3. Usar el token JWT en `Authorization: Bearer <token>`.
 4. Crear y consultar clientes.
 5. Registrar y consultar vehiculos.
-6. Consultar historial base por id o por placa.
+6. Crear una orden de trabajo.
+7. Registrar diagnostico.
+8. Registrar inspeccion inicial y fotos simuladas por URL.
+9. Consultar historial base por id o por placa.
 
 ## Fuera de alcance por ahora
 

@@ -1,0 +1,23 @@
+CREATE TABLE reception_inspections (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    work_order_id BIGINT NOT NULL,
+    mileage BIGINT NOT NULL,
+    fuel_level VARCHAR(50) NULL,
+    exterior_condition VARCHAR(255) NULL,
+    visible_scratches TEXT NULL,
+    visible_dents TEXT NULL,
+    lights_working BOOLEAN NULL,
+    tires_condition VARCHAR(255) NULL,
+    mirrors_condition VARCHAR(255) NULL,
+    has_spare_tire BOOLEAN NULL,
+    has_jack BOOLEAN NULL,
+    has_tools BOOLEAN NULL,
+    has_documents BOOLEAN NULL,
+    personal_items_notes TEXT NULL,
+    general_notes TEXT NULL,
+    created_at DATETIME(6) NOT NULL,
+    updated_at DATETIME(6) NOT NULL,
+    CONSTRAINT pk_reception_inspections PRIMARY KEY (id),
+    CONSTRAINT uk_reception_inspections_work_order UNIQUE (work_order_id),
+    CONSTRAINT fk_reception_inspections_work_order FOREIGN KEY (work_order_id) REFERENCES work_orders (id)
+);

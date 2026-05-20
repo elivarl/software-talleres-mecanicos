@@ -12,6 +12,7 @@ import com.taller360.app.vehicles.application.dto.VehicleHistoryWorkOrderRespons
 import com.taller360.app.vehicles.application.dto.VehicleResponse;
 import com.taller360.app.vehicles.domain.Vehicle;
 import com.taller360.app.vehicles.infrastructure.VehicleRepository;
+import com.taller360.app.workorders.infrastructure.WorkOrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +23,16 @@ public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
     private final CustomerRepository customerRepository;
+    private final WorkOrderRepository workOrderRepository;
 
-    public VehicleService(VehicleRepository vehicleRepository, CustomerRepository customerRepository) {
+    public VehicleService(
+            VehicleRepository vehicleRepository,
+            CustomerRepository customerRepository,
+            WorkOrderRepository workOrderRepository
+    ) {
         this.vehicleRepository = vehicleRepository;
         this.customerRepository = customerRepository;
+        this.workOrderRepository = workOrderRepository;
     }
 
     @Transactional(readOnly = true)
@@ -199,7 +206,14 @@ public class VehicleService {
         return new VehicleHistoryResponse(
                 toResponse(vehicle),
                 customerResponse,
-                List.<VehicleHistoryWorkOrderResponse>of()
+                workOrderRepository.findByVehicleIdOrderByReceptionDateDescCreatedAtDesc(vehicle.getId()).stream()
+                        .map(workOrder -> new VehicleHistoryWorkOrderResponse(
+                                workOrder.getId(),
+                                workOrder.getCode(),
+                                workOrder.getReceptionDate(),
+                                workOrder.getStatus().name()
+                        ))
+                        .toList()
         );
     }
 }
