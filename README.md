@@ -1,6 +1,6 @@
 # Taller360 Backend
 
-Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con flujo publico de aprobacion o rechazo, inventario, registro de repuestos usados, mano de obra, quality control, marcado de ordenes listas para retiro y entrega del vehiculo.
+Backend MVP para la gestion operativa de talleres mecanicos. En el estado actual ya incluye autenticacion JWT, administracion de usuarios internos, clientes, vehiculos, ordenes de trabajo, inspecciones iniciales, cotizaciones con flujo publico de aprobacion o rechazo, inventario, registro de repuestos usados, mano de obra, quality control, marcado de ordenes listas para retiro, entrega del vehiculo e historial completo del vehiculo.
 
 ## Stack
 
@@ -34,8 +34,8 @@ Implementado:
 - Modulo `quotations`.
 - Modulo `inventory`.
 - Modulo `labor`.
+- Endpoints completos de historial del vehiculo.
 - Seed inicial de usuario ADMIN.
-- Endpoints base de historial del vehiculo.
 
 Todavia no implementado:
 
@@ -301,18 +301,27 @@ Labor:
 - `deliveredTo` es obligatorio.
 - `finalMileage` debe ser mayor o igual a `currentMileage`.
 - Una orden `IN_PROGRESS`, `REJECTED` o `CANCELLED` no puede entregarse.
+- El historial del vehiculo muestra solo ordenes asociadas al vehiculo consultado.
+- El historial del vehiculo se ordena desde la orden mas reciente hasta la mas antigua.
+- El historial incluye inspeccion, cotizacion, repuestos usados, mano de obra, diagnostico, estado final, fechas relevantes, kilometraje y totales basicos por orden.
+- El historial no expone `internalNotes`.
 - Los endpoints privados requieren JWT, salvo `POST /api/auth/login`.
 - Los endpoints publicos de cotizaciones no requieren JWT.
 
-## Historial base del vehiculo
+## Historial del vehiculo
 
-Los endpoints de historial del vehiculo ya existen en esta fase y devuelven:
+Los endpoints `GET /api/vehicles/{id}/history` y `GET /api/vehicles/by-plate/{plate}/history` devuelven:
 
 - Datos del vehiculo.
 - Datos del cliente actual.
-- Coleccion `workOrders`.
-
-Ahora `workOrders` devuelve un resumen basico con id, codigo, fecha de recepcion y estado cuando existen ordenes asociadas.
+- Ordenes asociadas al vehiculo desde la mas reciente hasta la mas antigua.
+- Diagnostico, estado final y fechas relevantes por orden.
+- Inspeccion inicial si existe.
+- Cotizacion si existe.
+- Repuestos usados.
+- Mano de obra.
+- Totales basicos por orden.
+- Kilometraje registrado y entrega si aplica.
 
 ## Flujo basico de prueba
 
@@ -332,7 +341,7 @@ Ahora `workOrders` devuelve un resumen basico con id, codigo, fecha de recepcion
 14. Completar quality control.
 15. Marcar la orden como `READY`.
 16. Entregar el vehiculo y verificar estado `DELIVERED`.
-17. Consultar historial base por id o por placa.
+17. Consultar historial completo por id o por placa.
 
 ## Fuera de alcance por ahora
 
