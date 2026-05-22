@@ -1,0 +1,105 @@
+.work-order-detail__summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.work-order-detail__summary {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.work-order-detail__overview {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.work-order-detail__overview-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+}
+
+.work-order-detail__overview-meta small,
+.work-order-detail__complaint small,
+.work-order-detail__field > span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--p-surface-500);
+  font-weight: 600;
+}
+
+.work-order-detail__complaint p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.work-order-detail__inline-form,
+.work-order-detail__inline-photo-form {
+  display: grid;
+  grid-template-columns: minmax(16rem, 22rem) auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+.work-order-detail__inline-photo-form {
+  grid-template-columns: minmax(16rem, 2fr) minmax(12rem, 1fr) auto;
+  margin-top: 1rem;
+}
+
+.work-order-detail__form {
+  display: grid;
+  gap: 1rem;
+}
+
+.work-order-detail__form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.work-order-detail__field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.work-order-detail__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.work-order-detail__panel-note {
+  padding: 0.9rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--p-surface-100);
+  color: var(--p-surface-700);
+}
+
+.work-order-detail__photos {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.work-order-detail__photos-header h3,
+.work-order-detail__photos-header p {
+  margin: 0;
+}
+
+.work-order-detail__photos-header p {
+  margin-top: 0.25rem;
+  color: var(--p-surface-500);
+}
+
+.work-order-detail__error {
+  color: var(--p-red-500);
+}
+
+@media (max-width: 900px) {
+  .work-order-detail__inline-form,
+  .work-order-detail__inline-photo-form {
+    grid-template-columns: 1fr;
+  }
+}

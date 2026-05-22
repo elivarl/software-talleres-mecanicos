@@ -1,0 +1,168 @@
+<section class="app-page">
+  <app-page-header
+    [title]="'Nueva orden de trabajo'"
+    [subtitle]="'Registra la recepción del vehículo y deja lista la orden para inspección y diagnóstico.'"
+  />
+
+  @if (loading()) {
+    <app-loading-state [message]="'Cargando datos para crear la orden...'" />
+  } @else if (customers().length === 0 || vehicles().length === 0) {
+    <app-empty-state
+      [title]="'Faltan datos previos para crear la orden'"
+      [description]="'Necesitas al menos un cliente y un vehículo registrados antes de crear una orden de trabajo.'"
+      [icon]="'pi pi-briefcase'"
+    />
+  } @else {
+    <p-card>
+      <form class="work-order-create__form" [formGroup]="workOrderForm" (ngSubmit)="submit()">
+        <div class="work-order-create__grid">
+          <label class="work-order-create__field">
+            <span>Cliente</span>
+            <p-select
+              formControlName="customerId"
+              [options]="customers()"
+              optionLabel="fullName"
+              optionValue="id"
+              placeholder="Selecciona un cliente"
+              appendTo="body"
+              [filter]="true"
+              filterBy="fullName"
+            />
+            @if (hasError('customerId', 'required')) {
+              <small class="work-order-create__error">Selecciona un cliente.</small>
+            }
+          </label>
+
+          <label class="work-order-create__field">
+            <span>Vehículo</span>
+            <p-select
+              formControlName="vehicleId"
+              [options]="filteredVehicles()"
+              optionLabel="plate"
+              optionValue="id"
+              placeholder="Selecciona un vehículo"
+              appendTo="body"
+              [filter]="true"
+              filterBy="plate,brand,model"
+              [disabled]="filteredVehicles().length === 0"
+            >
+              <ng-template let-vehicle #item>
+                {{ formatVehicleLabel(vehicle) }}
+              </ng-template>
+              <ng-template let-selectedVehicle #selectedItem>
+                {{ selectedVehicle ? formatVehicleLabel(selectedVehicle) : 'Selecciona un vehículo' }}
+              </ng-template>
+            </p-select>
+            @if (hasError('vehicleId', 'required')) {
+              <small class="work-order-create__error">Selecciona un vehículo.</small>
+            }
+          </label>
+
+          @if (canSelectMechanic()) {
+            <label class="work-order-create__field">
+              <span>Mecánico asignado</span>
+              <p-select
+                formControlName="assignedMechanicId"
+                [options]="mechanics()"
+                optionLabel="fullName"
+                optionValue="id"
+                placeholder="Asignar después"
+                appendTo="body"
+                [showClear]="true"
+              />
+            </label>
+          }
+
+          <label class="work-order-create__field">
+            <span>Fecha de recepción</span>
+            <p-datepicker
+              formControlName="receptionDate"
+              appendTo="body"
+              [showIcon]="true"
+              [showTime]="true"
+              hourFormat="24"
+              dateFormat="yy-mm-dd"
+            />
+          </label>
+
+          <label class="work-order-create__field">
+            <span>Entrega estimada</span>
+            <p-datepicker
+              formControlName="estimatedDeliveryDate"
+              appendTo="body"
+              [showIcon]="true"
+              dateFormat="yy-mm-dd"
+            />
+          </label>
+
+          <label class="work-order-create__field">
+            <span>Kilometraje actual</span>
+            <p-inputnumber
+              formControlName="currentMileage"
+              mode="decimal"
+              [min]="0"
+              [useGrouping]="false"
+              placeholder="Ej. 85000"
+            />
+            @if (hasError('currentMileage', 'required')) {
+              <small class="work-order-create__error">Ingresa el kilometraje actual.</small>
+            }
+            @if (hasError('currentMileage', 'min')) {
+              <small class="work-order-create__error">El kilometraje no puede ser negativo.</small>
+            }
+          </label>
+
+          <label class="work-order-create__field">
+            <span>Nivel de combustible</span>
+            <input
+              pInputText
+              type="text"
+              formControlName="fuelLevel"
+              placeholder="Ej. Medio tanque"
+            />
+          </label>
+        </div>
+
+        <label class="work-order-create__field">
+          <span>Motivo de ingreso</span>
+          <textarea
+            pTextarea
+            formControlName="customerComplaint"
+            rows="4"
+            placeholder="Describe lo que reporta el cliente"
+          ></textarea>
+          @if (hasError('customerComplaint', 'required')) {
+            <small class="work-order-create__error">Ingresa el motivo de ingreso.</small>
+          }
+        </label>
+
+        <label class="work-order-create__field">
+          <span>Observaciones iniciales</span>
+          <textarea
+            pTextarea
+            formControlName="initialObservations"
+            rows="4"
+            placeholder="Ej. Rayones visibles, golpes leves o comentarios de recepción"
+          ></textarea>
+        </label>
+
+        <div class="work-order-create__actions">
+          <p-button
+            label="Cancelar"
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            [outlined]="true"
+            type="button"
+            (onClick)="cancel()"
+          />
+          <p-button
+            label="Crear orden"
+            icon="pi pi-check"
+            type="submit"
+            [loading]="submitting()"
+          />
+        </div>
+      </form>
+    </p-card>
+  }
+</section>

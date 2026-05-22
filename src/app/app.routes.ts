@@ -96,10 +96,26 @@ export const routes: Routes = [
       {
         path: 'work-orders',
         loadComponent: () =>
-          import('./features/work-orders/pages/work-orders/work-orders.component').then(
-            (m) => m.WorkOrdersComponent
+          import('./features/work-orders/pages/work-orders-list/work-orders-list.component').then(
+            (m) => m.WorkOrdersListComponent
           ),
         title: 'Órdenes de trabajo | Taller360'
+      },
+      {
+        path: 'work-orders/new',
+        loadComponent: () =>
+          import('./features/work-orders/pages/work-order-create/work-order-create.component').then(
+            (m) => m.WorkOrderCreateComponent
+          ),
+        title: 'Nueva orden de trabajo | Taller360'
+      },
+      {
+        path: 'work-orders/:id',
+        loadComponent: () =>
+          import('./features/work-orders/pages/work-order-detail/work-order-detail.component').then(
+            (m) => m.WorkOrderDetailComponent
+          ),
+        title: 'Detalle de orden de trabajo | Taller360'
       },
       {
         path: 'inventory',

@@ -1,0 +1,26 @@
+.work-orders-list__filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  width: 100%;
+  align-items: end;
+}
+
+.work-orders-list__filter-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.work-orders-list__actions-column,
+.work-orders-list__actions-cell {
+  width: 5rem;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .work-orders-list__filter-actions {
+    justify-content: stretch;
+  }
+}

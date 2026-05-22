@@ -5,4 +5,7 @@ export interface User {
   fullName: string;
   email: string;
   role: UserRole;
+  active?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

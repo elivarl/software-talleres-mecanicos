@@ -1,0 +1,139 @@
+<section class="app-page">
+  <app-page-header
+    [title]="'Órdenes de trabajo'"
+    [subtitle]="'Consulta la recepción del taller y entra al flujo central de inspección y diagnóstico.'"
+  >
+    <p-button
+      label="Nueva orden"
+      icon="pi pi-plus"
+      severity="primary"
+      (onClick)="createWorkOrder()"
+    />
+  </app-page-header>
+
+  <p-card>
+    <p-toolbar styleClass="work-orders-list__toolbar">
+      <ng-template #start>
+        <form class="work-orders-list__filters" [formGroup]="filtersForm">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input
+              pInputText
+              type="text"
+              formControlName="plate"
+              placeholder="Buscar por placa"
+              (keyup.enter)="search()"
+            />
+          </span>
+
+          <p-select
+            formControlName="status"
+            [options]="statusOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Estado"
+            appendTo="body"
+          />
+
+          <p-select
+            formControlName="customerId"
+            [options]="customers()"
+            optionLabel="fullName"
+            optionValue="id"
+            placeholder="Cliente"
+            appendTo="body"
+            [filter]="true"
+            filterBy="fullName"
+          />
+
+          <p-datepicker
+            formControlName="receptionDateFrom"
+            placeholder="Recepción desde"
+            dateFormat="yy-mm-dd"
+            appendTo="body"
+            [showIcon]="true"
+          />
+
+          <p-datepicker
+            formControlName="receptionDateTo"
+            placeholder="Recepción hasta"
+            dateFormat="yy-mm-dd"
+            appendTo="body"
+            [showIcon]="true"
+          />
+
+          <div class="work-orders-list__filter-actions">
+            <p-button
+              label="Buscar"
+              icon="pi pi-search"
+              severity="secondary"
+              (onClick)="search()"
+            />
+            <p-button
+              label="Limpiar"
+              icon="pi pi-times"
+              severity="secondary"
+              [text]="true"
+              (onClick)="clearFilters()"
+            />
+          </div>
+        </form>
+      </ng-template>
+    </p-toolbar>
+
+    @if (workOrders().length === 0 && !loading()) {
+      <app-empty-state
+        [title]="'No hay órdenes para mostrar'"
+        [description]="'Cuando registres recepciones en el taller aparecerán aquí. También puedes ajustar los filtros si estás buscando una orden específica.'"
+        [icon]="'pi pi-briefcase'"
+        [actionLabel]="'Crear orden'"
+        [actionRouterLink]="'/work-orders/new'"
+      />
+    } @else {
+      <p-table
+        [value]="workOrders()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
+        responsiveLayout="scroll"
+        dataKey="id"
+      >
+        <ng-template #header>
+          <tr>
+            <th>Código</th>
+            <th>Cliente</th>
+            <th>Vehículo</th>
+            <th>Recepción</th>
+            <th>Estado</th>
+            <th>Mecánico</th>
+            <th class="work-orders-list__actions-column">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template #body let-workOrder>
+          <tr>
+            <td>{{ workOrder.code }}</td>
+            <td>{{ workOrder.customerFullName }}</td>
+            <td>{{ workOrder.vehiclePlate }}</td>
+            <td>{{ workOrder.receptionDate | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <p-tag
+                [value]="getStatusLabel(workOrder.status)"
+                [severity]="getStatusSeverity(workOrder.status)"
+              />
+            </td>
+            <td>{{ workOrder.assignedMechanicFullName || 'Sin asignar' }}</td>
+            <td class="work-orders-list__actions-cell">
+              <p-button
+                icon="pi pi-eye"
+                severity="secondary"
+                [text]="true"
+                (onClick)="viewWorkOrder(workOrder.id)"
+              />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</section>

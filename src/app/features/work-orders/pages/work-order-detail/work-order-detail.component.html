@@ -1,0 +1,445 @@
+<section class="app-page">
+  <app-page-header [title]="headerTitle()" [subtitle]="headerSubtitle()">
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="backToList()"
+    />
+    @if (canStartDiagnosis()) {
+      <p-button
+        label="Iniciar diagnóstico"
+        icon="pi pi-play"
+        severity="primary"
+        (onClick)="startDiagnosis()"
+      />
+    }
+  </app-page-header>
+
+  @if (loading()) {
+    <app-loading-state [message]="'Cargando la orden de trabajo...'" />
+  } @else if (workOrder(); as workOrder) {
+    <div class="work-order-detail__summary-grid">
+      <p-card>
+        <ng-template #title>Cliente</ng-template>
+        <div class="work-order-detail__summary">
+          <strong>{{ workOrder.customerFullName }}</strong>
+          <span>{{ customer()?.identification || 'Identificación no registrada' }}</span>
+          <span>{{ customer()?.phone || 'Teléfono no disponible' }}</span>
+          <span>{{ customer()?.email || 'Correo no disponible' }}</span>
+          <p-button
+            label="Ver cliente"
+            icon="pi pi-user"
+            severity="secondary"
+            [text]="true"
+            (onClick)="goToCustomer()"
+          />
+        </div>
+      </p-card>
+
+      <p-card>
+        <ng-template #title>Vehículo</ng-template>
+        <div class="work-order-detail__summary">
+          <strong>{{ workOrder.vehiclePlate }}</strong>
+          <span>{{ vehicle()?.brand }} {{ vehicle()?.model }}</span>
+          <span>Año: {{ vehicle()?.year || 'Sin dato' }}</span>
+          <span>Kilometraje actual: {{ workOrder.currentMileage | number }}</span>
+          <p-button
+            label="Ver vehículo"
+            icon="pi pi-car"
+            severity="secondary"
+            [text]="true"
+            (onClick)="goToVehicle()"
+          />
+        </div>
+      </p-card>
+    </div>
+
+    <p-card>
+      <div class="work-order-detail__overview">
+        <div class="work-order-detail__overview-meta">
+          <div>
+            <small>Código</small>
+            <strong>{{ workOrder.code }}</strong>
+          </div>
+          <div>
+            <small>Estado</small>
+            <p-tag
+              [value]="getStatusLabel(workOrder.status)"
+              [severity]="getStatusSeverity(workOrder.status)"
+            />
+          </div>
+          <div>
+            <small>Recepción</small>
+            <strong>{{ workOrder.receptionDate | date: 'dd/MM/yyyy HH:mm' }}</strong>
+          </div>
+          <div>
+            <small>Entrega estimada</small>
+            <strong>{{ workOrder.estimatedDeliveryDate | date: 'dd/MM/yyyy' }}</strong>
+          </div>
+          <div>
+            <small>Mecánico</small>
+            <strong>{{ workOrder.assignedMechanicFullName || 'Sin asignar' }}</strong>
+          </div>
+          <div>
+            <small>Combustible</small>
+            <strong>{{ workOrder.fuelLevel || 'Sin dato' }}</strong>
+          </div>
+        </div>
+
+        <div class="work-order-detail__complaint">
+          <small>Motivo de ingreso</small>
+          <p>{{ workOrder.customerComplaint }}</p>
+        </div>
+
+        @if (workOrder.initialObservations) {
+          <div class="work-order-detail__complaint">
+            <small>Observaciones iniciales</small>
+            <p>{{ workOrder.initialObservations }}</p>
+          </div>
+        }
+      </div>
+    </p-card>
+
+    @if (canAssignMechanic() && mechanics().length > 0) {
+      <p-card>
+        <ng-template #title>Asignación de mecánico</ng-template>
+        <form
+          class="work-order-detail__inline-form"
+          [formGroup]="assignMechanicForm"
+          (ngSubmit)="assignMechanic()"
+        >
+          <p-select
+            formControlName="assignedMechanicId"
+            [options]="mechanics()"
+            optionLabel="fullName"
+            optionValue="id"
+            placeholder="Selecciona un mecánico"
+            appendTo="body"
+          />
+          <p-button
+            label="Guardar asignación"
+            icon="pi pi-user-plus"
+            type="submit"
+            [loading]="mechanicSaving()"
+          />
+        </form>
+      </p-card>
+    }
+
+    <p-panel header="Inspección inicial" [toggleable]="true">
+      @if (!inspection()) {
+        <div class="work-order-detail__panel-note">
+          Aún no existe una inspección registrada para esta orden.
+        </div>
+      }
+
+      <form
+        class="work-order-detail__form"
+        [formGroup]="inspectionForm"
+        (ngSubmit)="saveInspection()"
+      >
+        <div class="work-order-detail__form-grid">
+          <label class="work-order-detail__field">
+            <span>Kilometraje</span>
+            <p-inputnumber
+              formControlName="mileage"
+              [min]="0"
+              [useGrouping]="false"
+              placeholder="Ej. 85000"
+            />
+            @if (hasInspectionError('mileage', 'required')) {
+              <small class="work-order-detail__error">Ingresa el kilometraje.</small>
+            }
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Combustible</span>
+            <input pInputText type="text" formControlName="fuelLevel" placeholder="Ej. Medio tanque" />
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Condición exterior</span>
+            <input
+              pInputText
+              type="text"
+              formControlName="exteriorCondition"
+              placeholder="Ej. Buena"
+            />
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Luces funcionando</span>
+            <p-select
+              formControlName="lightsWorking"
+              [options]="booleanOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Selecciona"
+              appendTo="body"
+            />
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Estado de llantas</span>
+            <input
+              pInputText
+              type="text"
+              formControlName="tiresCondition"
+              placeholder="Ej. Buen estado"
+            />
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Estado de espejos</span>
+            <input
+              pInputText
+              type="text"
+              formControlName="mirrorsCondition"
+              placeholder="Ej. Completos"
+            />
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Llanta de emergencia</span>
+            <p-select
+              formControlName="hasSpareTire"
+              [options]="booleanOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Selecciona"
+              appendTo="body"
+            />
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Gata</span>
+            <p-select
+              formControlName="hasJack"
+              [options]="booleanOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Selecciona"
+              appendTo="body"
+            />
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Herramientas</span>
+            <p-select
+              formControlName="hasTools"
+              [options]="booleanOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Selecciona"
+              appendTo="body"
+            />
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Documentos</span>
+            <p-select
+              formControlName="hasDocuments"
+              [options]="booleanOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Selecciona"
+              appendTo="body"
+            />
+          </label>
+        </div>
+
+        <div class="work-order-detail__form-grid">
+          <label class="work-order-detail__field">
+            <span>Rayones visibles</span>
+            <textarea
+              pTextarea
+              formControlName="visibleScratches"
+              rows="3"
+              placeholder="Describe los rayones visibles"
+            ></textarea>
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Golpes visibles</span>
+            <textarea
+              pTextarea
+              formControlName="visibleDents"
+              rows="3"
+              placeholder="Describe golpes o abolladuras"
+            ></textarea>
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Objetos personales</span>
+            <textarea
+              pTextarea
+              formControlName="personalItemsNotes"
+              rows="3"
+              placeholder="Ej. Radio desmontable, documentos o accesorios"
+            ></textarea>
+          </label>
+
+          <label class="work-order-detail__field">
+            <span>Notas generales</span>
+            <textarea
+              pTextarea
+              formControlName="generalNotes"
+              rows="3"
+              placeholder="Observaciones adicionales de la inspección"
+            ></textarea>
+          </label>
+        </div>
+
+        @if (canEditInspection()) {
+          <div class="work-order-detail__actions">
+            <p-button
+              label="Guardar inspección"
+              icon="pi pi-check"
+              type="submit"
+              [loading]="inspectionSaving()"
+            />
+          </div>
+        }
+      </form>
+
+      @if (inspection(); as inspection) {
+        <div class="work-order-detail__photos">
+          <div class="work-order-detail__photos-header">
+            <div>
+              <h3>Fotos simuladas por URL</h3>
+              <p>Usa esta sección para dejar evidencia visual de recepción.</p>
+            </div>
+          </div>
+
+          @if (canEditInspection()) {
+            <form
+              class="work-order-detail__inline-photo-form"
+              [formGroup]="photoForm"
+              (ngSubmit)="addPhoto()"
+            >
+              <input
+                pInputText
+                type="text"
+                formControlName="photoUrl"
+                placeholder="https://ejemplo.com/foto.jpg"
+              />
+              <input
+                pInputText
+                type="text"
+                formControlName="description"
+                placeholder="Descripción"
+              />
+              <p-button
+                label="Agregar foto"
+                icon="pi pi-image"
+                type="submit"
+                [loading]="photoSaving()"
+              />
+            </form>
+
+            @if (hasPhotoError('photoUrl', 'required')) {
+              <small class="work-order-detail__error">Ingresa la URL de la foto.</small>
+            }
+            @if (hasPhotoError('photoUrl', 'pattern')) {
+              <small class="work-order-detail__error">La URL debe iniciar con http o https.</small>
+            }
+          }
+
+          @if (inspection.photos.length === 0) {
+            <div class="work-order-detail__panel-note">
+              Todavía no se han agregado fotos simuladas a la inspección.
+            </div>
+          } @else {
+            <p-table [value]="inspection.photos" responsiveLayout="scroll">
+              <ng-template #header>
+                <tr>
+                  <th>Descripción</th>
+                  <th>URL</th>
+                  <th>Fecha</th>
+                </tr>
+              </ng-template>
+
+              <ng-template #body let-photo>
+                <tr>
+                  <td>{{ photo.description || 'Sin descripción' }}</td>
+                  <td>
+                    <a [href]="photo.photoUrl" target="_blank" rel="noreferrer">{{ photo.photoUrl }}</a>
+                  </td>
+                  <td>{{ photo.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          }
+        </div>
+      }
+    </p-panel>
+
+    <p-panel header="Diagnóstico técnico" [toggleable]="true">
+      <form class="work-order-detail__form" [formGroup]="diagnosisForm" (ngSubmit)="saveDiagnosis()">
+        <label class="work-order-detail__field">
+          <span>Diagnóstico</span>
+          <textarea
+            pTextarea
+            formControlName="diagnosis"
+            rows="5"
+            placeholder="Describe el diagnóstico técnico realizado"
+          ></textarea>
+          @if (hasDiagnosisError('required')) {
+            <small class="work-order-detail__error">Ingresa el diagnóstico técnico.</small>
+          }
+        </label>
+
+        @if (canEditDiagnosis()) {
+          <div class="work-order-detail__actions">
+            <p-button
+              label="Guardar diagnóstico"
+              icon="pi pi-wrench"
+              type="submit"
+              [loading]="diagnosisSaving()"
+            />
+          </div>
+        }
+      </form>
+    </p-panel>
+
+    <p-panel header="Notas internas" [toggleable]="true">
+      <form
+        class="work-order-detail__form"
+        [formGroup]="internalNotesForm"
+        (ngSubmit)="saveInternalNotes()"
+      >
+        <label class="work-order-detail__field">
+          <span>Notas internas</span>
+          <textarea
+            pTextarea
+            formControlName="internalNotes"
+            rows="4"
+            placeholder="Agrega recordatorios internos o comentarios operativos"
+          ></textarea>
+          @if (hasNotesError('required')) {
+            <small class="work-order-detail__error">Ingresa las notas internas.</small>
+          }
+        </label>
+
+        @if (canEditInternalNotes()) {
+          <div class="work-order-detail__actions">
+            <p-button
+              label="Guardar notas"
+              icon="pi pi-file-edit"
+              type="submit"
+              [loading]="notesSaving()"
+            />
+          </div>
+        }
+      </form>
+    </p-panel>
+  } @else {
+    <app-empty-state
+      [title]="'No se encontró la orden de trabajo'"
+      [description]="'La orden solicitada no está disponible o ya no existe en el sistema.'"
+      [icon]="'pi pi-exclamation-circle'"
+    />
+  }
+</section>
