@@ -1,0 +1,68 @@
+<section class="app-page">
+  <app-page-header
+    [title]="customer()?.fullName || 'Detalle de cliente'"
+    [subtitle]="'Consulta los datos del cliente y accede rápidamente a su edición.'"
+  >
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="backToList()"
+    />
+    <p-button
+      label="Editar"
+      icon="pi pi-pencil"
+      severity="primary"
+      (onClick)="editCustomer()"
+    />
+  </app-page-header>
+
+  @if (loading()) {
+    <app-loading-state [message]="'Cargando detalle del cliente...'" />
+  } @else if (customer(); as customerDetail) {
+    <div class="customer-detail__grid">
+      <p-card header="Información principal">
+        <dl class="customer-detail__list">
+          <div>
+            <dt>Nombre completo</dt>
+            <dd>{{ customerDetail.fullName }}</dd>
+          </div>
+          <div>
+            <dt>Identificación</dt>
+            <dd>{{ customerDetail.identification || 'Sin registro' }}</dd>
+          </div>
+          <div>
+            <dt>Teléfono</dt>
+            <dd>{{ customerDetail.phone }}</dd>
+          </div>
+          <div>
+            <dt>Correo</dt>
+            <dd>{{ customerDetail.email || 'Sin correo' }}</dd>
+          </div>
+          <div>
+            <dt>Dirección</dt>
+            <dd>{{ customerDetail.address || 'Sin dirección' }}</dd>
+          </div>
+        </dl>
+      </p-card>
+
+      <p-card header="Trazabilidad">
+        <dl class="customer-detail__list">
+          <div>
+            <dt>ID</dt>
+            <dd>#{{ customerDetail.id }}</dd>
+          </div>
+          <div>
+            <dt>Creado</dt>
+            <dd>{{ customerDetail.createdAt ? (customerDetail.createdAt | date: 'medium') : 'N/D' }}</dd>
+          </div>
+          <div>
+            <dt>Actualizado</dt>
+            <dd>{{ customerDetail.updatedAt ? (customerDetail.updatedAt | date: 'medium') : 'N/D' }}</dd>
+          </div>
+        </dl>
+      </p-card>
+    </div>
+  }
+</section>

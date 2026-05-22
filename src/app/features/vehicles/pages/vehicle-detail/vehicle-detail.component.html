@@ -1,0 +1,84 @@
+<section class="app-page">
+  <app-page-header
+    [title]="vehicle()?.plate || 'Detalle de vehículo'"
+    [subtitle]="'Consulta los datos del vehículo y del cliente asociado.'"
+  >
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="backToList()"
+    />
+    <p-button
+      label="Editar"
+      icon="pi pi-pencil"
+      severity="primary"
+      (onClick)="editVehicle()"
+    />
+  </app-page-header>
+
+  @if (loading()) {
+    <app-loading-state [message]="'Cargando detalle del vehículo...'" />
+  } @else if (vehicle(); as vehicleDetail) {
+    <div class="vehicle-detail__grid">
+      <p-card header="Información principal">
+        <dl class="vehicle-detail__list">
+          <div>
+            <dt>Placa</dt>
+            <dd>{{ vehicleDetail.plate }}</dd>
+          </div>
+          <div>
+            <dt>Cliente</dt>
+            <dd>
+              <button type="button" class="vehicle-detail__link" (click)="goToCustomer()">
+                {{ vehicleDetail.customerFullName }}
+              </button>
+            </dd>
+          </div>
+          <div>
+            <dt>Marca</dt>
+            <dd>{{ vehicleDetail.brand }}</dd>
+          </div>
+          <div>
+            <dt>Modelo</dt>
+            <dd>{{ vehicleDetail.model }}</dd>
+          </div>
+          <div>
+            <dt>Año</dt>
+            <dd>{{ vehicleDetail.year || 'Sin registro' }}</dd>
+          </div>
+          <div>
+            <dt>Color</dt>
+            <dd>{{ vehicleDetail.color || 'Sin registro' }}</dd>
+          </div>
+          <div>
+            <dt>VIN</dt>
+            <dd>{{ vehicleDetail.vin || 'Sin registro' }}</dd>
+          </div>
+          <div>
+            <dt>Kilometraje</dt>
+            <dd>{{ vehicleDetail.mileage | number }}</dd>
+          </div>
+        </dl>
+      </p-card>
+
+      <p-card header="Trazabilidad">
+        <dl class="vehicle-detail__list">
+          <div>
+            <dt>ID</dt>
+            <dd>#{{ vehicleDetail.id }}</dd>
+          </div>
+          <div>
+            <dt>Creado</dt>
+            <dd>{{ vehicleDetail.createdAt ? (vehicleDetail.createdAt | date: 'medium') : 'N/D' }}</dd>
+          </div>
+          <div>
+            <dt>Actualizado</dt>
+            <dd>{{ vehicleDetail.updatedAt ? (vehicleDetail.updatedAt | date: 'medium') : 'N/D' }}</dd>
+          </div>
+        </dl>
+      </p-card>
+    </div>
+  }
+</section>

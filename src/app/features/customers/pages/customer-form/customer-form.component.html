@@ -1,0 +1,75 @@
+<section class="app-page">
+  <app-page-header
+    [title]="isEditMode() ? 'Editar cliente' : 'Nuevo cliente'"
+    [subtitle]="
+      isEditMode()
+        ? 'Actualiza la información del cliente seleccionado.'
+        : 'Registra un nuevo cliente para asociarlo a sus vehículos y futuras órdenes.'
+    "
+  />
+
+  @if (loading()) {
+    <app-loading-state [message]="'Cargando información del cliente...'" />
+  } @else {
+    <p-card>
+      <form class="customer-form" [formGroup]="customerForm" (ngSubmit)="submit()">
+        <div class="customer-form__grid">
+          <div class="customer-form__field">
+            <label for="fullName">Nombre completo</label>
+            <input id="fullName" pInputText formControlName="fullName" />
+            @if (hasError('fullName', 'required')) {
+              <small class="customer-form__error">El nombre es obligatorio.</small>
+            }
+          </div>
+
+          <div class="customer-form__field">
+            <label for="identification">Identificación</label>
+            <input id="identification" pInputText formControlName="identification" />
+          </div>
+
+          <div class="customer-form__field">
+            <label for="phone">Teléfono</label>
+            <input id="phone" pInputText formControlName="phone" />
+            @if (hasError('phone', 'required')) {
+              <small class="customer-form__error">El teléfono es obligatorio.</small>
+            }
+          </div>
+
+          <div class="customer-form__field">
+            <label for="email">Correo electrónico</label>
+            <input id="email" pInputText formControlName="email" />
+            @if (hasError('email', 'email')) {
+              <small class="customer-form__error">Ingresa un correo válido.</small>
+            }
+          </div>
+
+          <div class="customer-form__field customer-form__field--full">
+            <label for="address">Dirección</label>
+            <textarea
+              id="address"
+              class="p-inputtext p-inputtextarea"
+              rows="4"
+              formControlName="address"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="customer-form__actions">
+          <p-button
+            type="button"
+            label="Cancelar"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="cancel()"
+          />
+          <p-button
+            type="submit"
+            [label]="isEditMode() ? 'Guardar cambios' : 'Crear cliente'"
+            icon="pi pi-save"
+            [loading]="submitting()"
+          />
+        </div>
+      </form>
+    </p-card>
+  }
+</section>

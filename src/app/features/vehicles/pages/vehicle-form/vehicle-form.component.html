@@ -1,0 +1,120 @@
+<section class="app-page">
+  <app-page-header
+    [title]="isEditMode() ? 'Editar vehículo' : 'Nuevo vehículo'"
+    [subtitle]="
+      isEditMode()
+        ? 'Actualiza los datos del vehículo seleccionado.'
+        : 'Registra un vehículo y vincúlalo al cliente correspondiente.'
+    "
+  />
+
+  @if (loading()) {
+    <app-loading-state [message]="'Cargando información del vehículo...'" />
+  } @else if (customers().length === 0) {
+    <app-empty-state
+      [title]="'No hay clientes disponibles'"
+      [description]="'Primero debes registrar al menos un cliente para poder crear un vehículo.'"
+      [icon]="'pi pi-users'"
+      [actionLabel]="'Crear cliente'"
+      [actionRouterLink]="'/customers/new'"
+    />
+  } @else {
+    <p-card>
+      <form class="vehicle-form" [formGroup]="vehicleForm" (ngSubmit)="submit()">
+        <div class="vehicle-form__grid">
+          <div class="vehicle-form__field">
+            <label for="customerId">Cliente</label>
+            <p-select
+              inputId="customerId"
+              formControlName="customerId"
+              [options]="customers()"
+              optionLabel="fullName"
+              optionValue="id"
+              placeholder="Selecciona un cliente"
+              styleClass="vehicle-form__select"
+            />
+            @if (hasError('customerId', 'required')) {
+              <small class="vehicle-form__error">Debes seleccionar un cliente.</small>
+            }
+          </div>
+
+          <div class="vehicle-form__field">
+            <label for="plate">Placa</label>
+            <input id="plate" pInputText formControlName="plate" />
+            @if (hasError('plate', 'required')) {
+              <small class="vehicle-form__error">La placa es obligatoria.</small>
+            }
+          </div>
+
+          <div class="vehicle-form__field">
+            <label for="brand">Marca</label>
+            <input id="brand" pInputText formControlName="brand" />
+            @if (hasError('brand', 'required')) {
+              <small class="vehicle-form__error">La marca es obligatoria.</small>
+            }
+          </div>
+
+          <div class="vehicle-form__field">
+            <label for="model">Modelo</label>
+            <input id="model" pInputText formControlName="model" />
+            @if (hasError('model', 'required')) {
+              <small class="vehicle-form__error">El modelo es obligatorio.</small>
+            }
+          </div>
+
+          <div class="vehicle-form__field">
+            <label for="year">Año</label>
+            <p-inputnumber
+              inputId="year"
+              formControlName="year"
+              [useGrouping]="false"
+              [min]="1900"
+              [max]="2100"
+              inputStyleClass="vehicle-form__number-input"
+            />
+          </div>
+
+          <div class="vehicle-form__field">
+            <label for="mileage">Kilometraje</label>
+            <p-inputnumber
+              inputId="mileage"
+              formControlName="mileage"
+              [useGrouping]="true"
+              [min]="0"
+              inputStyleClass="vehicle-form__number-input"
+            />
+            @if (hasError('mileage', 'required')) {
+              <small class="vehicle-form__error">El kilometraje es obligatorio.</small>
+            }
+          </div>
+
+          <div class="vehicle-form__field">
+            <label for="color">Color</label>
+            <input id="color" pInputText formControlName="color" />
+          </div>
+
+          <div class="vehicle-form__field">
+            <label for="vin">VIN</label>
+            <input id="vin" pInputText formControlName="vin" />
+          </div>
+        </div>
+
+        <div class="vehicle-form__actions">
+          <p-button
+            type="button"
+            label="Cancelar"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="cancel()"
+          />
+          <p-button
+            type="submit"
+            [label]="isEditMode() ? 'Guardar cambios' : 'Crear vehículo'"
+            icon="pi pi-save"
+            [loading]="submitting()"
+          />
+        </div>
+      </form>
+    </p-card>
+  }
+</section>

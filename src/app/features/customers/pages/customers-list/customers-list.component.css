@@ -1,0 +1,36 @@
+.customers-list__toolbar {
+  margin-bottom: 1rem;
+  padding: 0;
+  border: 0;
+}
+
+.customers-list__search {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.customers-list__search .p-input-icon-left {
+  flex: 1;
+  min-width: 18rem;
+}
+
+.customers-list__search input {
+  width: 100%;
+}
+
+.customers-list__actions-column {
+  width: 8rem;
+}
+
+.customers-list__actions-cell {
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .customers-list__search .p-input-icon-left {
+    min-width: 100%;
+  }
+}

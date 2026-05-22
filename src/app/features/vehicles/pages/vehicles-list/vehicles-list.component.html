@@ -1,0 +1,100 @@
+<section class="app-page">
+  <app-page-header
+    [title]="'Vehículos'"
+    [subtitle]="'Administra los vehículos del taller y consulta por placa usando el filtro del backend.'"
+  >
+    <p-button
+      label="Nuevo vehículo"
+      icon="pi pi-plus"
+      severity="primary"
+      (onClick)="createVehicle()"
+    />
+  </app-page-header>
+
+  <p-card>
+    <p-toolbar styleClass="vehicles-list__toolbar">
+      <ng-template #start>
+        <div class="vehicles-list__search">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input
+              pInputText
+              type="text"
+              [value]="searchPlate()"
+              (input)="searchPlate.set($any($event.target).value)"
+              (keyup.enter)="search()"
+              placeholder="Buscar por placa"
+            />
+          </span>
+          <p-button
+            label="Buscar"
+            icon="pi pi-search"
+            severity="secondary"
+            (onClick)="search()"
+          />
+          <p-button
+            label="Limpiar"
+            icon="pi pi-times"
+            [text]="true"
+            severity="secondary"
+            (onClick)="clearSearch()"
+          />
+        </div>
+      </ng-template>
+    </p-toolbar>
+
+    @if (vehicles().length === 0 && !loading()) {
+      <app-empty-state
+        [title]="'No hay vehículos para mostrar'"
+        [description]="'Cuando registres vehículos en el sistema aparecerán aquí. También puedes usar el filtro por placa.'"
+        [icon]="'pi pi-car'"
+        [actionLabel]="'Crear vehículo'"
+        [actionRouterLink]="'/vehicles/new'"
+      />
+    } @else {
+      <p-table
+        [value]="vehicles()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
+        responsiveLayout="scroll"
+        dataKey="id"
+      >
+        <ng-template #header>
+          <tr>
+            <th>Placa</th>
+            <th>Cliente</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Kilometraje</th>
+            <th class="vehicles-list__actions-column">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template #body let-vehicle>
+          <tr>
+            <td>{{ vehicle.plate }}</td>
+            <td>{{ vehicle.customerFullName }}</td>
+            <td>{{ vehicle.brand }}</td>
+            <td>{{ vehicle.model }}</td>
+            <td>{{ vehicle.mileage | number }}</td>
+            <td class="vehicles-list__actions-cell">
+              <p-button
+                icon="pi pi-eye"
+                severity="secondary"
+                [text]="true"
+                (onClick)="viewVehicle(vehicle.id)"
+              />
+              <p-button
+                icon="pi pi-pencil"
+                severity="secondary"
+                [text]="true"
+                (onClick)="editVehicle(vehicle.id)"
+              />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</section>

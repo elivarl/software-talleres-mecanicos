@@ -1,0 +1,98 @@
+<section class="app-page">
+  <app-page-header
+    [title]="'Clientes'"
+    [subtitle]="'Gestiona la información de clientes y consulta rápidamente por nombre, identificación o teléfono.'"
+  >
+    <p-button
+      label="Nuevo cliente"
+      icon="pi pi-plus"
+      severity="primary"
+      (onClick)="createCustomer()"
+    />
+  </app-page-header>
+
+  <p-card>
+    <p-toolbar styleClass="customers-list__toolbar">
+      <ng-template #start>
+        <div class="customers-list__search">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input
+              pInputText
+              type="text"
+              [value]="searchTerm()"
+              (input)="searchTerm.set($any($event.target).value)"
+              (keyup.enter)="search()"
+              placeholder="Buscar por nombre, identificación o teléfono"
+            />
+          </span>
+          <p-button
+            label="Buscar"
+            icon="pi pi-search"
+            severity="secondary"
+            (onClick)="search()"
+          />
+          <p-button
+            label="Limpiar"
+            icon="pi pi-times"
+            [text]="true"
+            severity="secondary"
+            (onClick)="clearSearch()"
+          />
+        </div>
+      </ng-template>
+    </p-toolbar>
+
+    @if (customers().length === 0 && !loading()) {
+      <app-empty-state
+        [title]="'No hay clientes para mostrar'"
+        [description]="'Cuando registres clientes en el sistema aparecerán aquí. También puedes usar la búsqueda si ya existen registros.'"
+        [icon]="'pi pi-users'"
+        [actionLabel]="'Crear cliente'"
+        [actionRouterLink]="'/customers/new'"
+      />
+    } @else {
+      <p-table
+        [value]="customers()"
+        [loading]="loading()"
+        [paginator]="true"
+        [rows]="10"
+        responsiveLayout="scroll"
+        dataKey="id"
+      >
+        <ng-template #header>
+          <tr>
+            <th>Nombre</th>
+            <th>Identificación</th>
+            <th>Teléfono</th>
+            <th>Correo</th>
+            <th class="customers-list__actions-column">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template #body let-customer>
+          <tr>
+            <td>{{ customer.fullName }}</td>
+            <td>{{ customer.identification || 'Sin registro' }}</td>
+            <td>{{ customer.phone }}</td>
+            <td>{{ customer.email || 'Sin correo' }}</td>
+            <td class="customers-list__actions-cell">
+              <p-button
+                icon="pi pi-eye"
+                severity="secondary"
+                [text]="true"
+                (onClick)="viewCustomer(customer.id)"
+              />
+              <p-button
+                icon="pi pi-pencil"
+                severity="secondary"
+                [text]="true"
+                (onClick)="editCustomer(customer.id)"
+              />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</section>
