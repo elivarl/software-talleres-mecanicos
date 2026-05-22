@@ -404,6 +404,14 @@
       </form>
     </p-panel>
 
+    <p-panel header="Cotización" [toggleable]="true">
+      <app-quotation-section
+        [workOrderId]="workOrder.id"
+        [workOrderStatus]="workOrder.status"
+        [canManage]="canManageWorkOrder()"
+      />
+    </p-panel>
+
     <p-panel header="Notas internas" [toggleable]="true">
       <form
         class="work-order-detail__form"

@@ -1,0 +1,101 @@
+.public-quotation {
+  min-height: 100vh;
+  position: relative;
+  padding: 2rem 1rem 3rem;
+  background:
+    radial-gradient(circle at top left, rgba(29, 78, 216, 0.15), transparent 30%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
+.public-quotation__backdrop {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.public-quotation__content {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.public-quotation__hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #f8fafc;
+}
+
+.public-quotation__eyebrow {
+  margin: 0 0 0.4rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(248, 250, 252, 0.7);
+}
+
+.public-quotation__hero h1,
+.public-quotation__intro {
+  margin: 0;
+}
+
+.public-quotation__intro {
+  margin-top: 0.5rem;
+  color: rgba(248, 250, 252, 0.8);
+  max-width: 48rem;
+}
+
+.public-quotation__hero-meta {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+}
+
+.public-quotation__hero-meta small,
+.public-quotation__summary small,
+.public-quotation__totals span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--p-surface-500);
+  font-weight: 600;
+}
+
+.public-quotation__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.public-quotation__summary {
+  display: grid;
+  gap: 1rem;
+}
+
+.public-quotation__status-message {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--p-surface-700);
+}
+
+.public-quotation__decision-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.public-quotation__totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(8rem, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .public-quotation__totals {
+    grid-template-columns: 1fr;
+  }
+}

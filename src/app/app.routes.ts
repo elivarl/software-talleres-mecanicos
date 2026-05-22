@@ -4,6 +4,14 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout.component'
 
 export const routes: Routes = [
   {
+    path: 'public/quotations/:token',
+    loadComponent: () =>
+      import('./features/public-quotation/pages/public-quotation/public-quotation.component').then(
+        (m) => m.PublicQuotationComponent
+      ),
+    title: 'Cotización pública | Taller360'
+  },
+  {
     path: 'login',
     loadComponent: () =>
       import('./features/auth/pages/login/login.component').then((m) => m.LoginComponent),

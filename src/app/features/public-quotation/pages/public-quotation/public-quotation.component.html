@@ -1,0 +1,129 @@
+<section class="public-quotation">
+  <div class="public-quotation__backdrop"></div>
+
+  <div class="public-quotation__content">
+    @if (loading()) {
+      <app-loading-state [message]="'Cargando cotización pública...'" />
+    } @else if (quotation(); as quotation) {
+      <p-card class="public-quotation__hero">
+        <p class="public-quotation__eyebrow">Taller360</p>
+        <h1>Revisión de cotización</h1>
+        <p class="public-quotation__intro">
+          Consulta el detalle de la orden y confirma tu decisión desde este enlace seguro.
+        </p>
+
+        <div class="public-quotation__hero-meta">
+          <div>
+            <small>Cotización</small>
+            <strong>{{ quotation.code }}</strong>
+          </div>
+          <div>
+            <small>Orden</small>
+            <strong>{{ quotation.workOrderCode }}</strong>
+          </div>
+          <div>
+            <small>Estado</small>
+            <p-tag
+              [value]="getStatusLabel(quotation.status)"
+              [severity]="getStatusSeverity(quotation.status)"
+            />
+          </div>
+        </div>
+      </p-card>
+
+      <div class="public-quotation__grid">
+        <p-card>
+          <ng-template #title>Resumen del vehículo y cliente</ng-template>
+          <div class="public-quotation__summary">
+            <div>
+              <small>Cliente</small>
+              <strong>{{ quotation.customerFullName }}</strong>
+            </div>
+            <div>
+              <small>Vehículo</small>
+              <strong>{{ quotation.vehiclePlate }}</strong>
+            </div>
+            <div>
+              <small>Fecha de emisión</small>
+              <strong>{{ quotation.createdAt | date: 'dd/MM/yyyy HH:mm' }}</strong>
+            </div>
+            @if (quotation.sentAt) {
+              <div>
+                <small>Fecha de envío</small>
+                <strong>{{ quotation.sentAt | date: 'dd/MM/yyyy HH:mm' }}</strong>
+              </div>
+            }
+          </div>
+        </p-card>
+
+        <p-card>
+          <ng-template #title>Estado de decisión</ng-template>
+          <p class="public-quotation__status-message">{{ statusMessage() }}</p>
+
+          @if (canDecide()) {
+            <div class="public-quotation__decision-actions">
+              <p-button
+                label="Aprobar cotización"
+                icon="pi pi-check"
+                severity="success"
+                [loading]="deciding()"
+                (onClick)="approve()"
+              />
+              <p-button
+                label="Rechazar cotización"
+                icon="pi pi-times"
+                severity="danger"
+                [outlined]="true"
+                [loading]="deciding()"
+                (onClick)="reject()"
+              />
+            </div>
+          }
+        </p-card>
+      </div>
+
+      <p-card>
+        <ng-template #title>Detalle de la cotización</ng-template>
+
+        <p-table [value]="quotation.items" responsiveLayout="scroll">
+          <ng-template #header>
+            <tr>
+              <th>Tipo</th>
+              <th>Descripción</th>
+              <th>Cantidad</th>
+              <th>Precio unitario</th>
+              <th>Total</th>
+            </tr>
+          </ng-template>
+
+          <ng-template #body let-item>
+            <tr>
+              <td>{{ getItemTypeLabel(item.type) }}</td>
+              <td>{{ item.description }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.unitPrice | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+              <td>{{ item.total | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+
+        <p-divider />
+
+        <div class="public-quotation__totals">
+          <div>
+            <span>Subtotal</span>
+            <strong>{{ quotation.subtotal | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+          </div>
+          <div>
+            <span>IVA</span>
+            <strong>{{ quotation.tax | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+          </div>
+          <div>
+            <span>Total</span>
+            <strong>{{ quotation.total | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+          </div>
+        </div>
+      </p-card>
+    }
+  </div>
+</section>

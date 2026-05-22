@@ -1,0 +1,239 @@
+@if (loading()) {
+  <p-card>
+    <p>Cargando cotización...</p>
+  </p-card>
+} @else if (!quotation()) {
+  @if (canCreateQuotation()) {
+    <p-card>
+      <div class="quotation-section__empty">
+        <i class="pi pi-file quotation-section__empty-icon"></i>
+        <h3>Todavía no existe una cotización</h3>
+        <p>
+          Cuando el diagnóstico esté listo, crea la cotización para registrar repuestos y mano de
+          obra.
+        </p>
+        <p-button
+          label="Crear cotización"
+          icon="pi pi-plus"
+          (onClick)="createQuotation()"
+          [loading]="creating()"
+        />
+      </div>
+    </p-card>
+  } @else if (hasUnresolvedQuotation()) {
+    <p-card>
+      <p class="quotation-section__note">
+        Esta orden ya avanzó al flujo de cotización, pero el contrato actual del backend no expone
+        una consulta por orden de trabajo. Si vuelves a entrar con el parámetro `quotationId` en la
+        URL, la sección podrá cargarla.
+      </p>
+    </p-card>
+  } @else {
+    <app-empty-state
+      [title]="'Cotización no disponible todavía'"
+      [description]="'La cotización puede crearse cuando la orden esté en diagnóstico y un usuario autorizado la gestione.'"
+      [icon]="'pi pi-file'"
+    />
+  }
+} @else {
+  <div class="quotation-section">
+    <p-card>
+      <div class="quotation-section__header">
+        <div>
+          <p class="quotation-section__eyebrow">Cotización {{ quotation()!.code }}</p>
+          <h3>{{ quotation()!.customerFullName }} · {{ quotation()!.vehiclePlate }}</h3>
+          <p>Estado actual de la cotización y acceso al enlace público para aprobación.</p>
+        </div>
+
+        <div class="quotation-section__status">
+          <p-tag
+            [value]="getStatusLabel(quotation()!.status)"
+            [severity]="getStatusSeverity(quotation()!.status)"
+          />
+          @if (quotation()!.publicToken) {
+            <p-button
+              label="Copiar enlace"
+              icon="pi pi-copy"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="copyPublicLink()"
+            />
+          }
+        </div>
+      </div>
+
+      <div class="quotation-section__link-block">
+        <small>Token público</small>
+        <strong>{{ quotation()!.publicToken || 'Se generará al enviar la cotización.' }}</strong>
+        @if (publicLink()) {
+          <span>{{ publicLink() }}</span>
+        }
+      </div>
+
+      @if (quotation()!.sentAt) {
+        <div class="quotation-section__meta">
+          <span>Enviada: {{ quotation()!.sentAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+          @if (quotation()!.customerDecisionAt) {
+            <span>Decisión cliente: {{ quotation()!.customerDecisionAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+          }
+        </div>
+      }
+    </p-card>
+
+    @if (canEditDraftQuotation()) {
+      <p-card>
+        <ng-template #title>
+          {{ editingItemId() ? 'Editar ítem de cotización' : 'Agregar ítem de cotización' }}
+        </ng-template>
+
+        <form class="quotation-section__item-form" [formGroup]="itemForm" (ngSubmit)="saveItem()">
+          <label class="quotation-section__field">
+            <span>Tipo</span>
+            <p-select
+              formControlName="type"
+              [options]="itemTypeOptions"
+              optionLabel="label"
+              optionValue="value"
+              appendTo="body"
+            />
+          </label>
+
+          <label class="quotation-section__field quotation-section__field--wide">
+            <span>Descripción</span>
+            <input
+              pInputText
+              type="text"
+              formControlName="description"
+              placeholder="Ej. Cambio de pastillas delanteras"
+            />
+            @if (hasItemError('description', 'required')) {
+              <small class="quotation-section__error">Ingresa una descripción.</small>
+            }
+          </label>
+
+          <label class="quotation-section__field">
+            <span>Cantidad</span>
+            <p-inputnumber
+              formControlName="quantity"
+              [min]="0.01"
+              [minFractionDigits]="0"
+              [maxFractionDigits]="2"
+              mode="decimal"
+            />
+          </label>
+
+          <label class="quotation-section__field">
+            <span>Precio unitario</span>
+            <p-inputnumber
+              formControlName="unitPrice"
+              [min]="0"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              mode="currency"
+              currency="USD"
+            />
+          </label>
+
+          <div class="quotation-section__actions">
+            @if (editingItemId()) {
+              <p-button
+                label="Cancelar edición"
+                icon="pi pi-times"
+                severity="secondary"
+                [outlined]="true"
+                type="button"
+                (onClick)="cancelEdit()"
+              />
+            }
+            <p-button
+              [label]="editingItemId() ? 'Guardar cambios' : 'Agregar ítem'"
+              [icon]="editingItemId() ? 'pi pi-check' : 'pi pi-plus'"
+              type="submit"
+              [loading]="savingItem()"
+            />
+          </div>
+        </form>
+      </p-card>
+    }
+
+    <p-card>
+      <ng-template #title>Ítems de cotización</ng-template>
+
+      @if (quotation()!.items.length === 0) {
+        <div class="quotation-section__note">
+          La cotización todavía no tiene ítems registrados.
+        </div>
+      } @else {
+        <p-table [value]="quotation()!.items" responsiveLayout="scroll">
+          <ng-template #header>
+            <tr>
+              <th>Tipo</th>
+              <th>Descripción</th>
+              <th>Cantidad</th>
+              <th>Precio unitario</th>
+              <th>Total</th>
+              @if (canEditDraftQuotation()) {
+                <th class="quotation-section__actions-column">Acciones</th>
+              }
+            </tr>
+          </ng-template>
+
+          <ng-template #body let-item>
+            <tr>
+              <td>{{ getItemTypeLabel(item.type) }}</td>
+              <td>{{ item.description }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.unitPrice | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+              <td>{{ item.total | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+              @if (canEditDraftQuotation()) {
+                <td class="quotation-section__actions-cell">
+                  <p-button
+                    icon="pi pi-pencil"
+                    severity="secondary"
+                    [text]="true"
+                    (onClick)="editItem(item)"
+                  />
+                  <p-button
+                    icon="pi pi-trash"
+                    severity="danger"
+                    [text]="true"
+                    [loading]="deletingItemId() === item.id"
+                    (onClick)="deleteItem(item)"
+                  />
+                </td>
+              }
+            </tr>
+          </ng-template>
+        </p-table>
+      }
+
+      <p-divider />
+
+      <div class="quotation-section__totals">
+        <div>
+          <span>Subtotal</span>
+          <strong>{{ quotation()!.subtotal | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+        </div>
+        <div>
+          <span>IVA</span>
+          <strong>{{ quotation()!.tax | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+        </div>
+        <div>
+          <span>Total</span>
+          <strong>{{ quotation()!.total | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+        </div>
+      </div>
+
+      @if (canSendQuotation()) {
+        <div class="quotation-section__send-actions">
+          <p-button
+            label="Enviar cotización"
+            icon="pi pi-send"
+            [loading]="sending()"
+            (onClick)="sendQuotation()"
+          />
+        </div>
+      }
+    </p-card>
+  </div>
+}

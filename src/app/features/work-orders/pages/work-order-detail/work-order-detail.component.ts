@@ -34,6 +34,7 @@ import { InspectionService } from '../../../../core/services/inspection.service'
 import { UserService } from '../../../../core/services/user.service';
 import { VehicleService } from '../../../../core/services/vehicle.service';
 import { WorkOrderService } from '../../../../core/services/work-order.service';
+import { QuotationSectionComponent } from '../../../quotations/components/quotation-section/quotation-section.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
@@ -56,7 +57,8 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
     InputText,
     InputNumber,
     Textarea,
-    TableModule
+    TableModule,
+    QuotationSectionComponent
   ],
   templateUrl: './work-order-detail.component.html',
   styleUrl: './work-order-detail.component.css'

@@ -1,7 +1,4 @@
-import {
-  HttpErrorResponse,
-  HttpInterceptorFn
-} from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
@@ -10,9 +7,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const authorizationHeader = authService.getAuthorizationHeader();
   const isLoginRequest = req.url.includes('/api/auth/login');
+  const isPublicApiRequest = req.url.includes('/api/public/');
 
   const authReq =
-    authorizationHeader && !isLoginRequest
+    authorizationHeader && !isLoginRequest && !isPublicApiRequest
       ? req.clone({
           setHeaders: {
             Authorization: authorizationHeader
@@ -22,7 +20,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !isLoginRequest) {
+      if (error.status === 401 && !isLoginRequest && !isPublicApiRequest) {
         authService.logout('Sesión expirada. Inicia sesión nuevamente.');
       }
 
