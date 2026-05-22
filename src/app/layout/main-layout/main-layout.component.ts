@@ -17,22 +17,40 @@ export class MainLayoutComponent {
 
   readonly menuItems: MenuItem[] = [
     {
-      label: 'Operación',
-      icon: 'pi pi-home',
+      label: 'Navegación',
+      icon: 'pi pi-compass',
+      expanded: true,
       items: [
-        { label: 'Dashboard', icon: 'pi pi-chart-bar', routerLink: ['/dashboard'] },
-        { label: 'Clientes', icon: 'pi pi-users' },
-        { label: 'Vehículos', icon: 'pi pi-car' },
-        { label: 'Órdenes de trabajo', icon: 'pi pi-briefcase' }
-      ]
-    },
-    {
-      label: 'Gestión',
-      icon: 'pi pi-warehouse',
-      items: [
-        { label: 'Inventario', icon: 'pi pi-box' },
-        { label: 'Cotizaciones', icon: 'pi pi-file-edit' },
-        { label: 'Historial', icon: 'pi pi-history' }
+        {
+          label: 'Dashboard',
+          icon: 'pi pi-chart-bar',
+          routerLink: ['/dashboard'],
+          command: () => this.closeSidebar()
+        },
+        {
+          label: 'Clientes',
+          icon: 'pi pi-users',
+          routerLink: ['/customers'],
+          command: () => this.closeSidebar()
+        },
+        {
+          label: 'Vehículos',
+          icon: 'pi pi-car',
+          routerLink: ['/vehicles'],
+          command: () => this.closeSidebar()
+        },
+        {
+          label: 'Órdenes de trabajo',
+          icon: 'pi pi-briefcase',
+          routerLink: ['/work-orders'],
+          command: () => this.closeSidebar()
+        },
+        {
+          label: 'Inventario',
+          icon: 'pi pi-box',
+          routerLink: ['/inventory'],
+          command: () => this.closeSidebar()
+        }
       ]
     }
   ];

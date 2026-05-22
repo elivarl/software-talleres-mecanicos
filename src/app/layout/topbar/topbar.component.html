@@ -10,12 +10,24 @@
 
     <div>
       <p class="topbar__eyebrow">Taller360</p>
-      <h2 class="topbar__title">Base operativa del frontend</h2>
+      <h2 class="topbar__title">Panel administrativo del taller</h2>
     </div>
   </div>
 
-  <div class="topbar__status">
-    <span class="topbar__status-dot"></span>
-    <span>Configuración inicial</span>
+  <div class="topbar__actions">
+    <div class="topbar__status">
+      <span class="topbar__status-dot"></span>
+      <span>Plantilla 1B</span>
+    </div>
+
+    <div class="topbar__user">
+      <span class="topbar__user-avatar">
+        <i class="pi pi-user"></i>
+      </span>
+      <div>
+        <strong>{{ userName }}</strong>
+        <small>{{ userRole }}</small>
+      </div>
+    </div>
   </div>
 </header>

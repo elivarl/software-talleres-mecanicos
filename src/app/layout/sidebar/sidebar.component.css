@@ -56,6 +56,15 @@
   padding-inline: 0.35rem;
 }
 
+.sidebar__content::-webkit-scrollbar {
+  width: 0.45rem;
+}
+
+.sidebar__content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+}
+
 .sidebar__footer {
   padding: 1rem 0.5rem 0;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
@@ -89,6 +98,10 @@
   border-radius: 0.85rem;
 }
 
+:host ::ng-deep .sidebar__menu .p-panelmenu-header-link {
+  font-weight: 700;
+}
+
 :host ::ng-deep .sidebar__menu .p-panelmenu-header-link:hover,
 :host ::ng-deep .sidebar__menu .p-panelmenu-item-link:hover {
   background: rgba(255, 255, 255, 0.08);
@@ -97,6 +110,10 @@
 :host ::ng-deep .sidebar__menu .p-panelmenu-content {
   background: transparent;
   border: 0;
+}
+
+:host ::ng-deep .sidebar__menu .p-menuitem-text {
+  font-size: 0.95rem;
 }
 
 @media (min-width: 992px) {

@@ -1,0 +1,49 @@
+<section class="app-page">
+  <app-page-header
+    [title]="'Dashboard'"
+    [subtitle]="'Vista inicial del sistema para el taller. La plantilla queda preparada para insertar métricas, pendientes y accesos rápidos en las siguientes fases.'"
+  >
+    <p-button
+      label="Nueva orden"
+      icon="pi pi-plus"
+      severity="primary"
+      [disabled]="true"
+    />
+  </app-page-header>
+
+  <div class="app-grid app-grid--stats">
+    @for (stat of stats; track stat.label) {
+      <app-stat-card
+        [label]="stat.label"
+        [value]="stat.value"
+        [helper]="stat.helper"
+        [icon]="stat.icon"
+        [severity]="stat.severity ?? 'info'"
+      />
+    }
+  </div>
+
+  <div class="dashboard__grid">
+    <p-card header="Resumen operativo" subheader="Plantilla del dashboard">
+      <div class="dashboard__content">
+        <p>
+          El layout usa una estructura administrativa propia con sidebar, topbar y área central
+          limpia. No depende de plantillas externas y queda listo para integrar pantallas reales
+          del flujo del taller.
+        </p>
+
+        <div class="dashboard__status-row">
+          <p-tag severity="success" value="PrimeNG configurado" />
+          <p-tag severity="info" value="Responsive" />
+          <p-tag severity="warn" value="Listo para auth" />
+        </div>
+      </div>
+    </p-card>
+
+    <app-empty-state
+      [title]="'Sin widgets conectados todavía'"
+      [description]="'En las próximas fases este espacio mostrará KPIs, seguimiento de órdenes y avisos del taller según el backend real.'"
+      [icon]="'pi pi-chart-line'"
+    />
+  </div>
+</section>

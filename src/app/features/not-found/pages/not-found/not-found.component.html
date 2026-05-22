@@ -1,0 +1,14 @@
+<section class="app-page">
+  <app-page-header
+    [title]="'Página no encontrada'"
+    [subtitle]="'La ruta que intentaste abrir no existe dentro del frontend actual de Taller360.'"
+  />
+
+  <app-empty-state
+    [title]="'No pudimos encontrar esta vista'"
+    [description]="'Revisa el menú lateral o vuelve al dashboard para continuar trabajando.'"
+    [icon]="'pi pi-compass'"
+    [actionLabel]="'Ir al dashboard'"
+    [actionRouterLink]="'/dashboard'"
+  />
+</section>

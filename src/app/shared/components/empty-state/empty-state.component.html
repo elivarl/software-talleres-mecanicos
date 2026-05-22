@@ -1,0 +1,19 @@
+<section class="empty-state app-surface">
+  <span class="empty-state__icon">
+    <i [class]="icon()"></i>
+  </span>
+
+  <div class="empty-state__content">
+    <h3 class="empty-state__title">{{ title() }}</h3>
+    <p class="empty-state__description">{{ description() }}</p>
+  </div>
+
+  @if (actionLabel()) {
+    <p-button
+      [label]="actionLabel() ?? ''"
+      icon="pi pi-arrow-right"
+      [outlined]="true"
+      [routerLink]="actionRouterLink()"
+    />
+  }
+</section>

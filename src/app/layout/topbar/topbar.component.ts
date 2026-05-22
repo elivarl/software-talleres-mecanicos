@@ -11,6 +11,8 @@ import { Button } from 'primeng/button';
 })
 export class TopbarComponent {
   readonly menuButtonClick = output<void>();
+  readonly userName = 'Usuario pendiente';
+  readonly userRole = 'Sin autenticación';
 
   onMenuButtonClick(): void {
     this.menuButtonClick.emit();
