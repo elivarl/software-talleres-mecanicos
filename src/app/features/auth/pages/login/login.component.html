@@ -1,0 +1,69 @@
+<section class="login">
+  <div class="login__intro">
+    <p class="login__eyebrow">Taller360</p>
+    <h1 class="login__title">Gestión clara para tu taller</h1>
+    <p class="login__subtitle">
+      Inicia sesión para acceder al panel administrativo y continuar con la operación diaria del
+      taller.
+    </p>
+  </div>
+
+  <p-card class="login__card">
+    <ng-template #title>Iniciar sesión</ng-template>
+    <ng-template #subtitle>Usa tus credenciales del sistema.</ng-template>
+
+    <form class="login__form" [formGroup]="loginForm" (ngSubmit)="submit()">
+      <div class="login__field">
+        <label for="email">Correo electrónico</label>
+        <input
+          id="email"
+          type="email"
+          pInputText
+          formControlName="email"
+          class="login__input"
+          placeholder="usuario@taller360.com"
+        />
+        @if (hasError('email', 'required')) {
+          <small class="login__error">El correo es obligatorio.</small>
+        }
+        @if (hasError('email', 'email')) {
+          <small class="login__error">Ingresa un correo válido.</small>
+        }
+      </div>
+
+      <div class="login__field">
+        <label for="password">Contraseña</label>
+        <p-password
+          inputId="password"
+          formControlName="password"
+          [feedback]="false"
+          [toggleMask]="true"
+          styleClass="login__password"
+          inputStyleClass="login__input"
+          placeholder="Ingresa tu contraseña"
+        />
+        @if (hasError('password', 'required')) {
+          <small class="login__error">La contraseña es obligatoria.</small>
+        }
+      </div>
+
+      <div class="login__actions">
+        <p-button
+          type="submit"
+          label="Ingresar"
+          icon="pi pi-sign-in"
+          severity="primary"
+          [fluid]="true"
+          [loading]="isSubmitting()"
+        />
+      </div>
+
+      @if (isSubmitting()) {
+        <div class="login__loading">
+          <p-progressspinner strokeWidth="4" ariaLabel="Iniciando sesión" />
+          <span>Validando credenciales...</span>
+        </div>
+      }
+    </form>
+  </p-card>
+</section>

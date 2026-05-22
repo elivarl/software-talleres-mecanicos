@@ -17,7 +17,7 @@
   <div class="topbar__actions">
     <div class="topbar__status">
       <span class="topbar__status-dot"></span>
-      <span>Plantilla 1B</span>
+      <span>Sesión activa</span>
     </div>
 
     <div class="topbar__user">
@@ -25,9 +25,17 @@
         <i class="pi pi-user"></i>
       </span>
       <div>
-        <strong>{{ userName }}</strong>
-        <small>{{ userRole }}</small>
+        <strong>{{ userName() }}</strong>
+        <small>{{ userRole() }}</small>
       </div>
     </div>
+
+    <p-button
+      label="Salir"
+      icon="pi pi-sign-out"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="logout()"
+    />
   </div>
 </header>

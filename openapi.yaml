@@ -1,0 +1,2711 @@
+openapi: 3.1.0
+info:
+  title: Taller360 Backend API
+  version: 0.0.1-SNAPSHOT
+  description: >
+    Contrato OpenAPI generado a partir del codigo implementado actualmente en el backend de Taller360.
+    Documenta autenticacion JWT, usuarios, clientes, vehiculos, work orders, inspecciones,
+    cotizaciones privadas y publicas, inventario, repuestos usados, mano de obra,
+    historial del vehiculo y dashboard.
+    Los endpoints privados usan JWT Bearer y los endpoints publicos de cotizacion no requieren autenticacion.
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+tags:
+  - name: Auth
+    description: Inicio de sesion y emision de JWT.
+  - name: Users
+    description: Administracion de usuarios internos del sistema.
+  - name: Customers
+    description: Gestion de clientes propietarios o responsables del vehiculo.
+  - name: Vehicles
+    description: Registro de vehiculos e historial consolidado.
+  - name: Work Orders
+    description: Flujo operativo principal del taller.
+  - name: Inspections
+    description: Inspeccion inicial y fotos simuladas de recepcion.
+  - name: Quotations
+    description: Cotizaciones privadas administradas por el taller.
+  - name: Public Quotations
+    description: Consulta y decision publica de cotizaciones por token.
+  - name: Inventory
+    description: Catalogo de items de inventario y stock.
+  - name: Used Parts
+    description: Repuestos usados registrados por orden de trabajo.
+  - name: Labor
+    description: Mano de obra asociada a una orden de trabajo.
+  - name: Dashboard
+    description: Resumen operativo del taller.
+security:
+  - BearerAuth: []
+paths:
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      security: []
+      summary: Authenticate a user and issue a JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/users:
+    get:
+      tags: [Users]
+      operationId: listUsers
+      summary: List users
+      description: Requires ADMIN role.
+      responses:
+        '200':
+          description: Users found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Users]
+      operationId: createUser
+      summary: Create a user
+      description: Requires ADMIN role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/users/{id}:
+    get:
+      tags: [Users]
+      operationId: getUserById
+      summary: Get a user by id
+      description: Requires ADMIN role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Users]
+      operationId: updateUser
+      summary: Update a user
+      description: Requires ADMIN role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/users/{id}/deactivate:
+    patch:
+      tags: [Users]
+      operationId: deactivateUser
+      summary: Deactivate a user
+      description: Requires ADMIN role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: User deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/customers:
+    get:
+      tags: [Customers]
+      operationId: listCustomers
+      summary: List customers
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search by full name, identification or phone
+      responses:
+        '200':
+          description: Customers found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Customers]
+      operationId: createCustomer
+      summary: Create a customer
+      description: Requires ADMIN or RECEPTIONIST role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCustomerRequest'
+      responses:
+        '201':
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/customers/{id}:
+    get:
+      tags: [Customers]
+      operationId: getCustomerById
+      summary: Get a customer by id
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Customer found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Customers]
+      operationId: updateCustomer
+      summary: Update a customer
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomerRequest'
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/vehicles:
+    get:
+      tags: [Vehicles]
+      operationId: listVehicles
+      summary: List vehicles
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - name: plate
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search by plate
+      responses:
+        '200':
+          description: Vehicles found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VehicleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Vehicles]
+      operationId: createVehicle
+      summary: Create a vehicle
+      description: Requires ADMIN or RECEPTIONIST role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVehicleRequest'
+      responses:
+        '201':
+          description: Vehicle created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/vehicles/{id}:
+    get:
+      tags: [Vehicles]
+      operationId: getVehicleById
+      summary: Get a vehicle by id
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Vehicle found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Vehicles]
+      operationId: updateVehicle
+      summary: Update a vehicle
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateVehicleRequest'
+      responses:
+        '200':
+          description: Vehicle updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/vehicles/{id}/history:
+    get:
+      tags: [Vehicles]
+      operationId: getVehicleHistoryById
+      summary: Get vehicle history by id
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Vehicle history found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/vehicles/by-plate/{plate}/history:
+    get:
+      tags: [Vehicles]
+      operationId: getVehicleHistoryByPlate
+      summary: Get vehicle history by plate
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - name: plate
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vehicle history found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders:
+    get:
+      tags: [Work Orders]
+      operationId: listWorkOrders
+      summary: List work orders
+      description: Requires ADMIN, RECEPTIONIST or MECHANIC role.
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/WorkOrderStatus'
+        - name: plate
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: customerId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: receptionDateFrom
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: receptionDateTo
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Work orders found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOrderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Work Orders]
+      operationId: createWorkOrder
+      summary: Create a work order
+      description: Requires ADMIN or RECEPTIONIST role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkOrderRequest'
+      responses:
+        '201':
+          description: Work order created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/work-orders/{id}:
+    get:
+      tags: [Work Orders]
+      operationId: getWorkOrderById
+      summary: Get a work order by id
+      description: Requires ADMIN, RECEPTIONIST or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Work order found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/assign-mechanic:
+    patch:
+      tags: [Work Orders]
+      operationId: assignMechanic
+      summary: Assign mechanic to work order
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignMechanicRequest'
+      responses:
+        '200':
+          description: Work order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/status:
+    patch:
+      tags: [Work Orders]
+      operationId: updateWorkOrderStatus
+      summary: Update work order status
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorkOrderStatusRequest'
+      responses:
+        '200':
+          description: Work order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/diagnosis:
+    patch:
+      tags: [Work Orders]
+      operationId: updateDiagnosis
+      summary: Register diagnosis
+      description: Requires ADMIN, RECEPTIONIST or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDiagnosisRequest'
+      responses:
+        '200':
+          description: Work order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/internal-notes:
+    patch:
+      tags: [Work Orders]
+      operationId: updateInternalNotes
+      summary: Update internal notes
+      description: Requires ADMIN, RECEPTIONIST or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInternalNotesRequest'
+      responses:
+        '200':
+          description: Work order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/quality-control:
+    patch:
+      tags: [Work Orders]
+      operationId: updateQualityControl
+      summary: Complete quality control
+      description: Requires ADMIN or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateQualityControlRequest'
+      responses:
+        '200':
+          description: Work order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/mark-ready:
+    patch:
+      tags: [Work Orders]
+      operationId: markWorkOrderReady
+      summary: Mark work order as ready
+      description: Requires ADMIN or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Work order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/deliver:
+    patch:
+      tags: [Work Orders]
+      operationId: deliverWorkOrder
+      summary: Deliver vehicle
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliverWorkOrderRequest'
+      responses:
+        '200':
+          description: Work order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/inspection:
+    post:
+      tags: [Inspections]
+      operationId: createReceptionInspection
+      summary: Create initial reception inspection
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReceptionInspectionRequest'
+      responses:
+        '201':
+          description: Inspection created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptionInspectionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    get:
+      tags: [Inspections]
+      operationId: getReceptionInspectionByWorkOrderId
+      summary: Get reception inspection by work order id
+      description: Requires ADMIN, RECEPTIONIST or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Inspection found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptionInspectionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/inspections/{id}:
+    put:
+      tags: [Inspections]
+      operationId: updateReceptionInspection
+      summary: Update reception inspection
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReceptionInspectionRequest'
+      responses:
+        '200':
+          description: Inspection updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptionInspectionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/inspections/{id}/photos:
+    post:
+      tags: [Inspections]
+      operationId: addInspectionPhoto
+      summary: Add simulated inspection photo URL
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddInspectionPhotoRequest'
+      responses:
+        '201':
+          description: Photo added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptionInspectionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/quotation:
+    post:
+      tags: [Quotations]
+      operationId: createQuotation
+      summary: Create quotation for work order
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '201':
+          description: Quotation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/quotations/{id}:
+    get:
+      tags: [Quotations]
+      operationId: getQuotationById
+      summary: Get quotation by id
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Quotation found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Quotations]
+      operationId: updateQuotation
+      summary: Replace quotation items while quotation is DRAFT
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateQuotationRequest'
+      responses:
+        '200':
+          description: Quotation updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/quotations/{id}/items:
+    post:
+      tags: [Quotations]
+      operationId: addQuotationItem
+      summary: Add quotation item
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotationItemRequest'
+      responses:
+        '201':
+          description: Item added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/quotations/{id}/items/{itemId}:
+    put:
+      tags: [Quotations]
+      operationId: updateQuotationItem
+      summary: Update quotation item
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/ItemId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotationItemRequest'
+      responses:
+        '200':
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Quotations]
+      operationId: deleteQuotationItem
+      summary: Delete quotation item
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/ItemId'
+      responses:
+        '204':
+          description: Item deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/quotations/{id}/send:
+    post:
+      tags: [Quotations]
+      operationId: sendQuotation
+      summary: Send quotation to customer
+      description: Requires ADMIN or RECEPTIONIST role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Quotation sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/public/quotations/{token}:
+    get:
+      tags: [Public Quotations]
+      operationId: getPublicQuotationByToken
+      security: []
+      summary: Get quotation by public token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Quotation found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/public/quotations/{token}/approve:
+    post:
+      tags: [Public Quotations]
+      operationId: approveQuotationByToken
+      security: []
+      summary: Approve quotation by public token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Quotation approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/public/quotations/{token}/reject:
+    post:
+      tags: [Public Quotations]
+      operationId: rejectQuotationByToken
+      security: []
+      summary: Reject quotation by public token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Quotation rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/inventory:
+    get:
+      tags: [Inventory]
+      operationId: listInventoryItems
+      summary: List inventory items
+      description: Requires ADMIN role.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search by name or SKU
+      responses:
+        '200':
+          description: Inventory items found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryItemResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Inventory]
+      operationId: createInventoryItem
+      summary: Create inventory item
+      description: Requires ADMIN role.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInventoryItemRequest'
+      responses:
+        '201':
+          description: Inventory item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItemResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/inventory/low-stock:
+    get:
+      tags: [Inventory]
+      operationId: listLowStockItems
+      summary: List low stock inventory items
+      description: Requires ADMIN role.
+      responses:
+        '200':
+          description: Low stock items found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryItemResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/inventory/{id}:
+    get:
+      tags: [Inventory]
+      operationId: getInventoryItemById
+      summary: Get inventory item by id
+      description: Requires ADMIN role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Inventory item found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItemResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Inventory]
+      operationId: updateInventoryItem
+      summary: Update inventory item
+      description: Requires ADMIN role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInventoryItemRequest'
+      responses:
+        '200':
+          description: Inventory item updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItemResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/inventory/{id}/deactivate:
+    patch:
+      tags: [Inventory]
+      operationId: deactivateInventoryItem
+      summary: Deactivate inventory item
+      description: Requires ADMIN role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Inventory item deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItemResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/parts:
+    post:
+      tags: [Used Parts]
+      operationId: registerWorkOrderPart
+      summary: Register used part in work order
+      description: Requires ADMIN or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterWorkOrderPartRequest'
+      responses:
+        '201':
+          description: Used part registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOrderPartResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      tags: [Used Parts]
+      operationId: listWorkOrderParts
+      summary: List used parts by work order
+      description: Requires ADMIN, RECEPTIONIST or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Used parts found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOrderPartResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/parts/{partId}:
+    delete:
+      tags: [Used Parts]
+      operationId: deleteWorkOrderPart
+      summary: Delete used part from work order
+      description: Requires ADMIN or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/PartId'
+      responses:
+        '204':
+          description: Used part deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/labor:
+    post:
+      tags: [Labor]
+      operationId: registerLaborItem
+      summary: Register labor item in work order
+      description: Requires ADMIN or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterLaborItemRequest'
+      responses:
+        '201':
+          description: Labor item registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaborItemResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    get:
+      tags: [Labor]
+      operationId: listLaborItems
+      summary: List labor items by work order
+      description: Requires ADMIN, RECEPTIONIST or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Labor items found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LaborItemResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/work-orders/{id}/labor/{laborId}:
+    delete:
+      tags: [Labor]
+      operationId: deleteLaborItem
+      summary: Delete labor item from work order
+      description: Requires ADMIN or MECHANIC role.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/LaborId'
+      responses:
+        '204':
+          description: Labor item deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/dashboard:
+    get:
+      tags: [Dashboard]
+      operationId: getDashboard
+      summary: Get operational dashboard
+      description: Requires ADMIN role.
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Usar `Authorization: Bearer <accessToken>`.'
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    ItemId:
+      name: itemId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    PartId:
+      name: partId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    LaborId:
+      name: laborId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+  responses:
+    BadRequest:
+      description: Validation or business rule error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Unauthorized:
+      description: Authentication required or invalid credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Conflict:
+      description: Duplicate or conflicting data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+  schemas:
+    ApiErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        validationErrors:
+          type: array
+          items:
+            type: string
+      example:
+        timestamp: '2026-05-21T10:00:00'
+        status: 400
+        error: Bad Request
+        message: Validation failed
+        path: /api/work-orders/1/deliver
+        validationErrors:
+          - deliveredTo: Delivered to is required
+    UserRole:
+      type: string
+      enum: [ADMIN, RECEPTIONIST, MECHANIC]
+    WorkOrderStatus:
+      type: string
+      enum: [RECEIVED, DIAGNOSIS, QUOTED, APPROVED, REJECTED, IN_PROGRESS, READY, DELIVERED, CANCELLED]
+    QuotationStatus:
+      type: string
+      enum: [DRAFT, SENT, APPROVED, REJECTED, EXPIRED]
+    QuotationItemType:
+      type: string
+      enum: [PART, LABOR]
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      example:
+        email: admin@taller360.com
+        password: Admin12345*
+    AuthenticatedUserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/UserRole'
+    LoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+        expiresIn:
+          type: integer
+          format: int64
+        user:
+          $ref: '#/components/schemas/AuthenticatedUserResponse'
+      example:
+        accessToken: eyJhbGciOiJIUzI1NiJ9.example
+        tokenType: Bearer
+        expiresIn: 3600
+        user:
+          id: 1
+          fullName: Admin Taller360
+          email: admin@taller360.com
+          role: ADMIN
+    CreateUserRequest:
+      type: object
+      required: [fullName, email, password, role]
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        role:
+          $ref: '#/components/schemas/UserRole'
+        active:
+          type: boolean
+    UpdateUserRequest:
+      type: object
+      required: [fullName, email, role, active]
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        role:
+          $ref: '#/components/schemas/UserRole'
+        active:
+          type: boolean
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/UserRole'
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateCustomerRequest:
+      type: object
+      required: [fullName, phone]
+      properties:
+        fullName:
+          type: string
+          maxLength: 150
+        identification:
+          type: string
+          maxLength: 50
+        phone:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 150
+        address:
+          type: string
+          maxLength: 255
+      example:
+        fullName: Juan Perez
+        identification: 0912345678
+        phone: '0999999999'
+        email: juan@example.com
+        address: Guayaquil
+    UpdateCustomerRequest:
+      type: object
+      required: [fullName, phone]
+      properties:
+        fullName:
+          type: string
+          maxLength: 150
+        identification:
+          type: string
+          maxLength: 50
+        phone:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 150
+        address:
+          type: string
+          maxLength: 255
+    CustomerResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        fullName:
+          type: string
+        identification:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        address:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateVehicleRequest:
+      type: object
+      required: [customerId, plate, brand, model, mileage]
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        plate:
+          type: string
+          maxLength: 20
+        brand:
+          type: string
+          maxLength: 100
+        model:
+          type: string
+          maxLength: 100
+        year:
+          type: integer
+        color:
+          type: string
+          maxLength: 50
+        vin:
+          type: string
+          maxLength: 100
+        mileage:
+          type: integer
+          format: int64
+          minimum: 0
+      example:
+        customerId: 1
+        plate: ABC-1234
+        brand: Toyota
+        model: Corolla
+        year: 2020
+        color: Plata
+        vin: JTDBR32E720123456
+        mileage: 85000
+    UpdateVehicleRequest:
+      type: object
+      required: [customerId, plate, brand, model, mileage]
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        plate:
+          type: string
+          maxLength: 20
+        brand:
+          type: string
+          maxLength: 100
+        model:
+          type: string
+          maxLength: 100
+        year:
+          type: integer
+        color:
+          type: string
+          maxLength: 50
+        vin:
+          type: string
+          maxLength: 100
+        mileage:
+          type: integer
+          format: int64
+          minimum: 0
+    VehicleResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        customerId:
+          type: integer
+          format: int64
+        customerFullName:
+          type: string
+        plate:
+          type: string
+        brand:
+          type: string
+        model:
+          type: string
+        year:
+          type: integer
+        color:
+          type: string
+        vin:
+          type: string
+        mileage:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    VehicleHistoryResponse:
+      type: object
+      properties:
+        vehicle:
+          $ref: '#/components/schemas/VehicleResponse'
+        customer:
+          $ref: '#/components/schemas/CustomerResponse'
+        workOrders:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleHistoryWorkOrderResponse'
+      example:
+        vehicle:
+          id: 1
+          customerId: 1
+          customerFullName: Juan Perez
+          plate: ABC-1234
+          brand: Toyota
+          model: Corolla
+          year: 2020
+          color: Plata
+          vin: JTDBR32E720123456
+          mileage: 85000
+          createdAt: '2026-05-21T08:30:00'
+          updatedAt: '2026-05-21T08:30:00'
+        customer:
+          id: 1
+          fullName: Juan Perez
+          identification: 0912345678
+          phone: '0999999999'
+          email: juan@example.com
+          address: Guayaquil
+          createdAt: '2026-05-21T08:00:00'
+          updatedAt: '2026-05-21T08:00:00'
+        workOrders:
+          - workOrderId: 1
+            workOrderCode: OT-000001
+            status: DELIVERED
+            receptionDate: '2026-05-21T09:00:00'
+            estimatedDeliveryDate: '2026-05-24'
+            readyAt: '2026-05-21T17:30:00'
+            deliveredAt: '2026-05-21T18:00:00'
+            deliveredTo: Juan Perez
+            currentMileage: 85000
+            finalMileage: 85010
+            fuelLevel: Half
+            customerComplaint: Ruido al frenar
+            initialObservations: Vehiculo ingresa con rayones leves
+            diagnosis: Desgaste avanzado en pastillas de freno delanteras
+            qualityControlCompleted: true
+            qualityControlNotes: Prueba de ruta y frenado correcto
+            inspection: null
+            quotation: null
+            usedParts: []
+            laborItems: []
+            totals:
+              partsTotal: 45.0
+              laborTotal: 25.0
+              serviceTotal: 70.0
+              quotationTotal: 80.5
+    VehicleHistoryWorkOrderResponse:
+      type: object
+      properties:
+        workOrderId:
+          type: integer
+          format: int64
+        workOrderCode:
+          type: string
+        status:
+          $ref: '#/components/schemas/WorkOrderStatus'
+        receptionDate:
+          type: string
+          format: date-time
+        estimatedDeliveryDate:
+          type: string
+          format: date
+        readyAt:
+          type: string
+          format: date-time
+        deliveredAt:
+          type: string
+          format: date-time
+        deliveredTo:
+          type: string
+        currentMileage:
+          type: integer
+          format: int64
+        finalMileage:
+          type: integer
+          format: int64
+        fuelLevel:
+          type: string
+        customerComplaint:
+          type: string
+        initialObservations:
+          type: string
+        diagnosis:
+          type: string
+        qualityControlCompleted:
+          type: boolean
+        qualityControlNotes:
+          type: string
+        inspection:
+          $ref: '#/components/schemas/VehicleHistoryInspectionResponse'
+        quotation:
+          $ref: '#/components/schemas/VehicleHistoryQuotationResponse'
+        usedParts:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleHistoryPartResponse'
+        laborItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleHistoryLaborItemResponse'
+        totals:
+          $ref: '#/components/schemas/VehicleHistoryOrderTotalsResponse'
+    VehicleHistoryInspectionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        mileage:
+          type: integer
+          format: int64
+        fuelLevel:
+          type: string
+        exteriorCondition:
+          type: string
+        visibleScratches:
+          type: string
+        visibleDents:
+          type: string
+        lightsWorking:
+          type: boolean
+        tiresCondition:
+          type: string
+        mirrorsCondition:
+          type: string
+        hasSpareTire:
+          type: boolean
+        hasJack:
+          type: boolean
+        hasTools:
+          type: boolean
+        hasDocuments:
+          type: boolean
+        personalItemsNotes:
+          type: string
+        generalNotes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleHistoryInspectionPhotoResponse'
+    VehicleHistoryInspectionPhotoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        photoUrl:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    VehicleHistoryQuotationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        code:
+          type: string
+        status:
+          $ref: '#/components/schemas/QuotationStatus'
+        subtotal:
+          type: number
+        tax:
+          type: number
+        total:
+          type: number
+        sentAt:
+          type: string
+          format: date-time
+        customerDecisionAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleHistoryQuotationItemResponse'
+    VehicleHistoryQuotationItemResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          $ref: '#/components/schemas/QuotationItemType'
+        description:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        total:
+          type: number
+    VehicleHistoryPartResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        inventoryItemId:
+          type: integer
+          format: int64
+        inventoryItemName:
+          type: string
+        inventoryItemSku:
+          type: string
+        quantity:
+          type: number
+        unitCost:
+          type: number
+        salePrice:
+          type: number
+        total:
+          type: number
+        margin:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+    VehicleHistoryLaborItemResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        description:
+          type: string
+        price:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+    VehicleHistoryOrderTotalsResponse:
+      type: object
+      properties:
+        partsTotal:
+          type: number
+        laborTotal:
+          type: number
+        serviceTotal:
+          type: number
+        quotationTotal:
+          type: number
+    CreateWorkOrderRequest:
+      type: object
+      required: [customerId, vehicleId, currentMileage, customerComplaint]
+      properties:
+        customerId:
+          type: integer
+          format: int64
+        vehicleId:
+          type: integer
+          format: int64
+        assignedMechanicId:
+          type: integer
+          format: int64
+        receptionDate:
+          type: string
+          format: date-time
+        estimatedDeliveryDate:
+          type: string
+          format: date
+        currentMileage:
+          type: integer
+          format: int64
+          minimum: 0
+        fuelLevel:
+          type: string
+          maxLength: 50
+        customerComplaint:
+          type: string
+        initialObservations:
+          type: string
+      example:
+        customerId: 1
+        vehicleId: 1
+        assignedMechanicId: 3
+        receptionDate: '2026-05-21T09:00:00'
+        estimatedDeliveryDate: '2026-05-24'
+        currentMileage: 85000
+        fuelLevel: Half
+        customerComplaint: Ruido al frenar
+        initialObservations: Vehiculo ingresa con rayones leves
+    AssignMechanicRequest:
+      type: object
+      required: [assignedMechanicId]
+      properties:
+        assignedMechanicId:
+          type: integer
+          format: int64
+    UpdateWorkOrderStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/WorkOrderStatus'
+    UpdateDiagnosisRequest:
+      type: object
+      required: [diagnosis]
+      properties:
+        diagnosis:
+          type: string
+    UpdateInternalNotesRequest:
+      type: object
+      required: [internalNotes]
+      properties:
+        internalNotes:
+          type: string
+    UpdateQualityControlRequest:
+      type: object
+      required: [completed]
+      properties:
+        completed:
+          type: boolean
+        notes:
+          type: string
+      example:
+        completed: true
+        notes: Prueba de ruta y frenado correcto
+    DeliverWorkOrderRequest:
+      type: object
+      required: [deliveredTo, finalMileage]
+      properties:
+        deliveredTo:
+          type: string
+        finalMileage:
+          type: integer
+          format: int64
+          minimum: 0
+      example:
+        deliveredTo: Juan Perez
+        finalMileage: 85010
+    WorkOrderResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        code:
+          type: string
+        customerId:
+          type: integer
+          format: int64
+        customerFullName:
+          type: string
+        vehicleId:
+          type: integer
+          format: int64
+        vehiclePlate:
+          type: string
+        assignedMechanicId:
+          type: integer
+          format: int64
+        assignedMechanicFullName:
+          type: string
+        status:
+          $ref: '#/components/schemas/WorkOrderStatus'
+        receptionDate:
+          type: string
+          format: date-time
+        estimatedDeliveryDate:
+          type: string
+          format: date
+        currentMileage:
+          type: integer
+          format: int64
+        fuelLevel:
+          type: string
+        customerComplaint:
+          type: string
+        initialObservations:
+          type: string
+        diagnosis:
+          type: string
+        internalNotes:
+          type: string
+        qualityControlCompleted:
+          type: boolean
+        qualityControlNotes:
+          type: string
+        readyAt:
+          type: string
+          format: date-time
+        deliveredAt:
+          type: string
+          format: date-time
+        deliveredTo:
+          type: string
+        finalMileage:
+          type: integer
+          format: int64
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      example:
+        id: 1
+        code: OT-000001
+        customerId: 1
+        customerFullName: Juan Perez
+        vehicleId: 1
+        vehiclePlate: ABC-1234
+        assignedMechanicId: 3
+        assignedMechanicFullName: Carlos Mecanico
+        status: READY
+        receptionDate: '2026-05-21T09:00:00'
+        estimatedDeliveryDate: '2026-05-24'
+        currentMileage: 85000
+        fuelLevel: Half
+        customerComplaint: Ruido al frenar
+        initialObservations: Vehiculo ingresa con rayones leves
+        diagnosis: Desgaste avanzado en pastillas de freno delanteras
+        internalNotes: Cliente desea llamada antes de entregar
+        qualityControlCompleted: true
+        qualityControlNotes: Prueba de ruta y frenado correcto
+        readyAt: '2026-05-21T17:30:00'
+        deliveredAt: null
+        deliveredTo: null
+        finalMileage: null
+        createdAt: '2026-05-21T09:00:00'
+        updatedAt: '2026-05-21T17:30:00'
+    CreateReceptionInspectionRequest:
+      type: object
+      required: [mileage]
+      properties:
+        mileage:
+          type: integer
+          format: int64
+          minimum: 0
+        fuelLevel:
+          type: string
+          maxLength: 50
+        exteriorCondition:
+          type: string
+          maxLength: 255
+        visibleScratches:
+          type: string
+        visibleDents:
+          type: string
+        lightsWorking:
+          type: boolean
+        tiresCondition:
+          type: string
+          maxLength: 255
+        mirrorsCondition:
+          type: string
+          maxLength: 255
+        hasSpareTire:
+          type: boolean
+        hasJack:
+          type: boolean
+        hasTools:
+          type: boolean
+        hasDocuments:
+          type: boolean
+        personalItemsNotes:
+          type: string
+        generalNotes:
+          type: string
+      example:
+        mileage: 85000
+        fuelLevel: Half
+        exteriorCondition: Good
+        visibleScratches: Leves rayones en parachoque
+        visibleDents: null
+        lightsWorking: true
+        tiresCondition: Good
+        mirrorsCondition: Good
+        hasSpareTire: true
+        hasJack: true
+        hasTools: true
+        hasDocuments: true
+        personalItemsNotes: Radio desmontable
+        generalNotes: Sin novedades mayores
+    UpdateReceptionInspectionRequest:
+      type: object
+      required: [mileage]
+      properties:
+        mileage:
+          type: integer
+          format: int64
+          minimum: 0
+        fuelLevel:
+          type: string
+          maxLength: 50
+        exteriorCondition:
+          type: string
+          maxLength: 255
+        visibleScratches:
+          type: string
+        visibleDents:
+          type: string
+        lightsWorking:
+          type: boolean
+        tiresCondition:
+          type: string
+          maxLength: 255
+        mirrorsCondition:
+          type: string
+          maxLength: 255
+        hasSpareTire:
+          type: boolean
+        hasJack:
+          type: boolean
+        hasTools:
+          type: boolean
+        hasDocuments:
+          type: boolean
+        personalItemsNotes:
+          type: string
+        generalNotes:
+          type: string
+    AddInspectionPhotoRequest:
+      type: object
+      required: [photoUrl]
+      properties:
+        photoUrl:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+          maxLength: 255
+      example:
+        photoUrl: https://example.com/photos/front-view.jpg
+        description: Vista frontal
+    InspectionPhotoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        photoUrl:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    ReceptionInspectionResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        workOrderId:
+          type: integer
+          format: int64
+        workOrderCode:
+          type: string
+        mileage:
+          type: integer
+          format: int64
+        fuelLevel:
+          type: string
+        exteriorCondition:
+          type: string
+        visibleScratches:
+          type: string
+        visibleDents:
+          type: string
+        lightsWorking:
+          type: boolean
+        tiresCondition:
+          type: string
+        mirrorsCondition:
+          type: string
+        hasSpareTire:
+          type: boolean
+        hasJack:
+          type: boolean
+        hasTools:
+          type: boolean
+        hasDocuments:
+          type: boolean
+        personalItemsNotes:
+          type: string
+        generalNotes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/InspectionPhotoResponse'
+    QuotationItemRequest:
+      type: object
+      required: [type, description, quantity, unitPrice]
+      properties:
+        type:
+          $ref: '#/components/schemas/QuotationItemType'
+        description:
+          type: string
+          maxLength: 255
+        quantity:
+          type: number
+          minimum: 0.01
+        unitPrice:
+          type: number
+          minimum: 0
+      example:
+        type: PART
+        description: Pastillas de freno delanteras
+        quantity: 1
+        unitPrice: 45.00
+    QuotationItemResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          $ref: '#/components/schemas/QuotationItemType'
+        description:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        total:
+          type: number
+    UpdateQuotationRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuotationItemRequest'
+      example:
+        items:
+          - type: PART
+            description: Pastillas de freno delanteras
+            quantity: 1
+            unitPrice: 45.00
+          - type: LABOR
+            description: Cambio de pastillas
+            quantity: 1
+            unitPrice: 25.00
+    QuotationResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        code:
+          type: string
+        workOrderId:
+          type: integer
+          format: int64
+        workOrderCode:
+          type: string
+        vehiclePlate:
+          type: string
+        customerFullName:
+          type: string
+        status:
+          $ref: '#/components/schemas/QuotationStatus'
+        subtotal:
+          type: number
+        tax:
+          type: number
+        total:
+          type: number
+        publicToken:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        customerDecisionAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuotationItemResponse'
+      example:
+        id: 1
+        code: COT-000001
+        workOrderId: 1
+        workOrderCode: OT-000001
+        vehiclePlate: ABC-1234
+        customerFullName: Juan Perez
+        status: SENT
+        subtotal: 70.0
+        tax: 10.5
+        total: 80.5
+        publicToken: 550e8400-e29b-41d4-a716-446655440000
+        sentAt: '2026-05-21T10:15:00'
+        customerDecisionAt: null
+        createdAt: '2026-05-21T10:00:00'
+        updatedAt: '2026-05-21T10:15:00'
+        items:
+          - id: 1
+            type: PART
+            description: Pastillas de freno delanteras
+            quantity: 1
+            unitPrice: 45.0
+            total: 45.0
+          - id: 2
+            type: LABOR
+            description: Cambio de pastillas
+            quantity: 1
+            unitPrice: 25.0
+            total: 25.0
+    CreateInventoryItemRequest:
+      type: object
+      required: [name, sku, currentStock, minStock, unitCost, salePrice]
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        sku:
+          type: string
+          maxLength: 80
+        description:
+          type: string
+          maxLength: 255
+        currentStock:
+          type: number
+          minimum: 0
+        minStock:
+          type: number
+          minimum: 0
+        unitCost:
+          type: number
+          minimum: 0
+        salePrice:
+          type: number
+          minimum: 0
+        active:
+          type: boolean
+    UpdateInventoryItemRequest:
+      type: object
+      required: [name, sku, currentStock, minStock, unitCost, salePrice, active]
+      properties:
+        name:
+          type: string
+          maxLength: 150
+        sku:
+          type: string
+          maxLength: 80
+        description:
+          type: string
+          maxLength: 255
+        currentStock:
+          type: number
+          minimum: 0
+        minStock:
+          type: number
+          minimum: 0
+        unitCost:
+          type: number
+          minimum: 0
+        salePrice:
+          type: number
+          minimum: 0
+        active:
+          type: boolean
+    InventoryItemResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        sku:
+          type: string
+        description:
+          type: string
+        currentStock:
+          type: number
+        minStock:
+          type: number
+        unitCost:
+          type: number
+        salePrice:
+          type: number
+        active:
+          type: boolean
+        lowStock:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    RegisterWorkOrderPartRequest:
+      type: object
+      required: [inventoryItemId, quantity]
+      properties:
+        inventoryItemId:
+          type: integer
+          format: int64
+        quantity:
+          type: number
+          minimum: 0.01
+      example:
+        inventoryItemId: 1
+        quantity: 1
+    WorkOrderPartResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        workOrderId:
+          type: integer
+          format: int64
+        inventoryItemId:
+          type: integer
+          format: int64
+        inventoryItemName:
+          type: string
+        inventoryItemSku:
+          type: string
+        quantity:
+          type: number
+        unitCost:
+          type: number
+        salePrice:
+          type: number
+        total:
+          type: number
+        margin:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+    RegisterLaborItemRequest:
+      type: object
+      required: [description, price]
+      properties:
+        description:
+          type: string
+        price:
+          type: number
+          minimum: 0
+      example:
+        description: Cambio de pastillas y limpieza
+        price: 25.0
+    LaborItemResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        workOrderId:
+          type: integer
+          format: int64
+        description:
+          type: string
+        price:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+    DashboardLowStockItemResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        sku:
+          type: string
+        currentStock:
+          type: number
+        minStock:
+          type: number
+        active:
+          type: boolean
+    DashboardResponse:
+      type: object
+      properties:
+        totalWorkOrdersThisMonth:
+          type: integer
+          format: int64
+        workOrdersByStatus:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+        estimatedRevenueThisMonth:
+          type: number
+        pendingWorkOrders:
+          type: integer
+          format: int64
+        readyToDeliverWorkOrders:
+          type: integer
+          format: int64
+        lowStockItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/DashboardLowStockItemResponse'
+        deliveredWorkOrdersThisMonth:
+          type: integer
+          format: int64
+      example:
+        totalWorkOrdersThisMonth: 12
+        workOrdersByStatus:
+          RECEIVED: 1
+          DIAGNOSIS: 2
+          QUOTED: 1
+          APPROVED: 1
+          REJECTED: 1
+          IN_PROGRESS: 3
+          READY: 2
+          DELIVERED: 1
+          CANCELLED: 0
+        estimatedRevenueThisMonth: 1450.0
+        pendingWorkOrders: 10
+        readyToDeliverWorkOrders: 2
+        lowStockItems:
+          - id: 5
+            name: Pastillas de freno delanteras
+            sku: PAD-001
+            currentStock: 2.0
+            minStock: 2.0
+            active: true
+        deliveredWorkOrdersThisMonth: 4
