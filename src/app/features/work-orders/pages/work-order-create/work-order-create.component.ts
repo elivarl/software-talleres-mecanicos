@@ -60,12 +60,13 @@ export class WorkOrderCreateComponent implements OnInit {
   readonly customers = signal<Customer[]>([]);
   readonly vehicles = signal<Vehicle[]>([]);
   readonly mechanics = signal<User[]>([]);
+  readonly selectedCustomerId = signal<number | null>(null);
   readonly loading = signal(false);
   readonly submitting = signal(false);
   readonly currentUser = this.authService.currentUser;
   readonly canSelectMechanic = computed(() => this.currentUser()?.role === 'ADMIN');
   readonly filteredVehicles = computed(() => {
-    const customerId = this.workOrderForm.controls.customerId.value;
+    const customerId = this.selectedCustomerId();
 
     if (!customerId) {
       return [];
@@ -92,20 +93,24 @@ export class WorkOrderCreateComponent implements OnInit {
     this.workOrderForm.controls.customerId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((customerId) => {
-        const vehicleId = this.workOrderForm.controls.vehicleId.value;
+        const normalizedCustomerId = this.asNumber(customerId);
+        this.selectedCustomerId.set(normalizedCustomerId);
+        const vehicleId = this.asNumber(this.workOrderForm.controls.vehicleId.value);
 
-        if (!customerId || !vehicleId) {
+        if (!normalizedCustomerId || !vehicleId) {
           return;
         }
 
         const vehicleBelongsToCustomer = this.vehicles().some(
-          (vehicle) => vehicle.id === vehicleId && vehicle.customerId === customerId
+          (vehicle) => vehicle.id === vehicleId && vehicle.customerId === normalizedCustomerId
         );
 
         if (!vehicleBelongsToCustomer) {
           this.workOrderForm.controls.vehicleId.setValue(null);
         }
       });
+
+    this.selectedCustomerId.set(this.asNumber(this.workOrderForm.controls.customerId.value));
   }
 
   submit(): void {
@@ -201,9 +206,9 @@ export class WorkOrderCreateComponent implements OnInit {
     const rawValue = this.workOrderForm.getRawValue();
 
     return {
-      customerId: rawValue.customerId!,
-      vehicleId: rawValue.vehicleId!,
-      assignedMechanicId: rawValue.assignedMechanicId ?? undefined,
+      customerId: this.asNumber(rawValue.customerId)!,
+      vehicleId: this.asNumber(rawValue.vehicleId)!,
+      assignedMechanicId: this.asNumber(rawValue.assignedMechanicId) ?? undefined,
       receptionDate: this.formatDateTime(rawValue.receptionDate),
       estimatedDeliveryDate: this.formatDate(rawValue.estimatedDeliveryDate),
       currentMileage: rawValue.currentMileage!,
@@ -238,5 +243,14 @@ export class WorkOrderCreateComponent implements OnInit {
     const day = `${date.getDate()}`.padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+  }
+
+  private asNumber(value: number | string | null | undefined): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const parsedValue = Number(value);
+    return Number.isNaN(parsedValue) ? null : parsedValue;
   }
 }
