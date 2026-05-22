@@ -1,0 +1,106 @@
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, var(--app-sidebar-width));
+  padding: 1.25rem 1rem;
+  background: linear-gradient(180deg, #0b2740 0%, #123e65 100%);
+  color: #f8fafc;
+  transform: translateX(-100%);
+  transition: transform 0.24s ease;
+}
+
+.sidebar--open {
+  transform: translateX(0);
+}
+
+.sidebar__header {
+  padding: 0.25rem 0.5rem 1rem;
+}
+
+.sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.sidebar__logo strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.sidebar__logo p {
+  margin: 0.25rem 0 0;
+  color: rgba(248, 250, 252, 0.75);
+  font-size: 0.88rem;
+}
+
+.sidebar__logo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 1rem;
+  background: rgba(245, 158, 11, 0.18);
+  color: #fde68a;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.sidebar__content {
+  flex: 1;
+  overflow: auto;
+  padding-inline: 0.35rem;
+}
+
+.sidebar__footer {
+  padding: 1rem 0.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sidebar__footer p,
+.sidebar__footer small {
+  margin: 0;
+}
+
+.sidebar__footer p {
+  font-weight: 700;
+}
+
+.sidebar__footer small {
+  display: block;
+  margin-top: 0.35rem;
+  color: rgba(248, 250, 252, 0.7);
+  line-height: 1.45;
+}
+
+:host ::ng-deep .sidebar__menu .p-panelmenu-panel {
+  border: 0;
+  background: transparent;
+}
+
+:host ::ng-deep .sidebar__menu .p-panelmenu-header-link,
+:host ::ng-deep .sidebar__menu .p-panelmenu-item-link {
+  background: transparent;
+  color: #f8fafc;
+  border-radius: 0.85rem;
+}
+
+:host ::ng-deep .sidebar__menu .p-panelmenu-header-link:hover,
+:host ::ng-deep .sidebar__menu .p-panelmenu-item-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:host ::ng-deep .sidebar__menu .p-panelmenu-content {
+  background: transparent;
+  border: 0;
+}
+
+@media (min-width: 992px) {
+  .sidebar {
+    transform: translateX(0);
+  }
+}

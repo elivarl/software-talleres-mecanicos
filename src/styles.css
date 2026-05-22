@@ -1,1 +1,91 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'primeicons/primeicons.css';
+
+:root {
+  --app-bg: #f3f6fb;
+  --app-surface: #ffffff;
+  --app-surface-muted: #f7f9fc;
+  --app-border: #d9e2ec;
+  --app-text: #1f2937;
+  --app-text-muted: #5b6778;
+  --app-primary: #0f4c81;
+  --app-primary-strong: #0a3559;
+  --app-accent: #f59e0b;
+  --app-success: #1f9d55;
+  --app-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+  --app-radius: 18px;
+  --app-sidebar-width: 19rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background:
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.16), transparent 20rem),
+    linear-gradient(180deg, #f8fafc 0%, #eef4fb 100%);
+  color: var(--app-text);
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.app-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.app-grid--stats {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.app-surface {
+  background: var(--app-surface);
+  border: 1px solid rgba(217, 226, 236, 0.9);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow);
+}
+
+.app-section-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.app-section-subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--app-text-muted);
+  line-height: 1.5;
+}
+
+.p-card {
+  border-radius: var(--app-radius);
+  box-shadow: none;
+}
+
+.p-toast {
+  max-width: 28rem;
+}

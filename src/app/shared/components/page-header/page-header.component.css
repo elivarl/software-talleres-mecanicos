@@ -1,0 +1,40 @@
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(15, 76, 129, 0.08), rgba(245, 158, 11, 0.12));
+  border: 1px solid rgba(15, 76, 129, 0.08);
+  border-radius: var(--app-radius);
+}
+
+.page-header__title {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.page-header__subtitle {
+  margin: 0.5rem 0 0;
+  max-width: 42rem;
+  color: var(--app-text-muted);
+  line-height: 1.6;
+}
+
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-header__actions {
+    width: 100%;
+  }
+}

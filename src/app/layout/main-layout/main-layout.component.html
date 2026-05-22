@@ -1,0 +1,23 @@
+<div class="main-layout">
+  <app-sidebar
+    [menuItems]="menuItems"
+    [open]="sidebarOpen()"
+    (navigate)="closeSidebar()"
+  />
+
+  <button
+    type="button"
+    class="main-layout__overlay"
+    [class.main-layout__overlay--visible]="sidebarOpen()"
+    (click)="closeSidebar()"
+    aria-label="Cerrar navegación"
+  ></button>
+
+  <div class="main-layout__content">
+    <app-topbar (menuButtonClick)="toggleSidebar()" />
+
+    <main class="main-layout__page">
+      <router-outlet />
+    </main>
+  </div>
+</div>

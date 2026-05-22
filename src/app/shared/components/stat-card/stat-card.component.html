@@ -1,0 +1,16 @@
+<p-card class="stat-card">
+  <div class="stat-card__body">
+    <div>
+      <p class="stat-card__label">{{ label() }}</p>
+      <h2 class="stat-card__value">{{ value() }}</h2>
+      <p class="stat-card__helper">{{ helper() }}</p>
+    </div>
+
+    <div class="stat-card__aside">
+      <span class="stat-card__icon">
+        <i [class]="icon()"></i>
+      </span>
+      <p-tag [severity]="severity()" [value]="'Base lista'" />
+    </div>
+  </div>
+</p-card>

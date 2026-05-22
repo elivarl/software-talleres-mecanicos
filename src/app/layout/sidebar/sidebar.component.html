@@ -1,0 +1,20 @@
+<aside class="sidebar" [class.sidebar--open]="open()">
+  <div class="sidebar__header">
+    <a routerLink="/dashboard" class="sidebar__logo" (click)="onNavigate()">
+      <span class="sidebar__logo-mark">T</span>
+      <div>
+        <strong>Taller360</strong>
+        <p>Frontend PrimeNG</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="sidebar__content">
+    <p-panelmenu [model]="menuItems()" styleClass="sidebar__menu" />
+  </div>
+
+  <footer class="sidebar__footer">
+    <p>Fase 1A</p>
+    <small>Estructura base lista para conectar módulos y backend.</small>
+  </footer>
+</aside>
