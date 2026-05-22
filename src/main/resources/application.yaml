@@ -26,6 +26,8 @@ server:
 
 app:
   tax-rate: ${APP_TAX_RATE:0.15}
+  cors:
+    allowed-origin: ${APP_CORS_ALLOWED_ORIGIN:http://localhost:4200}
   jwt:
     secret: ${JWT_SECRET:Taller360JwtSecretKeyForDevelopmentOnly1234567890}
     expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}
