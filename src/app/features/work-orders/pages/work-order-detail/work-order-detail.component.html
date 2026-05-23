@@ -490,6 +490,87 @@
       </form>
     </p-panel>
 
+    @if (canShowDeliverySection()) {
+      <p-panel header="Entrega" [toggleable]="true">
+        <div class="work-order-detail__delivery-header">
+          <p-tag
+            [value]="workOrder.status === 'DELIVERED' ? 'Entregada' : workOrder.status === 'READY' ? 'Lista para entregar' : 'Entrega pendiente'"
+            [severity]="workOrder.status === 'DELIVERED' ? 'success' : workOrder.status === 'READY' ? 'info' : 'secondary'"
+          />
+          @if (workOrder.deliveredAt) {
+            <span class="work-order-detail__quality-meta">
+              Entregada el {{ workOrder.deliveredAt | date: 'dd/MM/yyyy HH:mm' }}
+            </span>
+          }
+        </div>
+
+        <div class="work-order-detail__delivery-summary">
+          <div>
+            <small>Entregado a</small>
+            <strong>{{ workOrder.deliveredTo || 'Pendiente' }}</strong>
+          </div>
+          <div>
+            <small>Kilometraje final</small>
+            <strong>{{ workOrder.finalMileage ?? 'Pendiente' }}</strong>
+          </div>
+        </div>
+
+        <form class="work-order-detail__form" [formGroup]="deliveryForm">
+          <div class="work-order-detail__form-grid">
+            <label class="work-order-detail__field">
+              <span>Entregado a</span>
+              <input
+                pInputText
+                type="text"
+                formControlName="deliveredTo"
+                placeholder="Nombre de quien recibe el vehículo"
+                [readonly]="!canDeliver()"
+              />
+              @if (hasDeliveryError('deliveredTo', 'required') || hasDeliveryError('deliveredTo', 'pattern')) {
+                <small class="work-order-detail__error">Ingresa a quién se entrega el vehículo.</small>
+              }
+            </label>
+
+            <label class="work-order-detail__field">
+              <span>Kilometraje final</span>
+              <p-inputnumber
+                formControlName="finalMileage"
+                [min]="workOrder.currentMileage"
+                [useGrouping]="false"
+                placeholder="Ej. 85010"
+                [disabled]="!canDeliver()"
+              />
+              @if (hasDeliveryError('finalMileage', 'required')) {
+                <small class="work-order-detail__error">Ingresa el kilometraje final.</small>
+              }
+              @if (hasFinalMileageBelowCurrent()) {
+                <small class="work-order-detail__error">
+                  El kilometraje final no puede ser menor al kilometraje actual.
+                </small>
+              }
+            </label>
+          </div>
+
+          @if (canDeliver()) {
+            <div class="work-order-detail__actions">
+              <p-button
+                label="Entregar vehículo"
+                icon="pi pi-send"
+                severity="success"
+                type="button"
+                [loading]="deliverySaving()"
+                (onClick)="confirmDeliver()"
+              />
+            </div>
+          } @else {
+            <div class="work-order-detail__panel-note">
+              La entrega solo se registra cuando la orden está lista para entregar.
+            </div>
+          }
+        </form>
+      </p-panel>
+    }
+
     <p-panel header="Notas internas" [toggleable]="true">
       <form
         class="work-order-detail__form"

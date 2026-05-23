@@ -78,6 +78,11 @@ export interface UpdateQualityControlRequest {
   notes?: string;
 }
 
+export interface DeliverWorkOrderRequest {
+  deliveredTo: string;
+  finalMileage: number;
+}
+
 export interface WorkOrderStatusOption {
   label: string;
   value: WorkOrderStatus;

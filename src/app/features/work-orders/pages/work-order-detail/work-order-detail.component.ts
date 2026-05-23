@@ -25,6 +25,7 @@ import {
 import { User } from '../../../../core/models/user.model';
 import { Vehicle } from '../../../../core/models/vehicle.model';
 import {
+  DeliverWorkOrderRequest,
   getWorkOrderStatusLabel,
   getWorkOrderStatusSeverity,
   WorkOrder,
@@ -94,6 +95,7 @@ export class WorkOrderDetailComponent implements OnInit {
   readonly notesSaving = signal(false);
   readonly qualityControlSaving = signal(false);
   readonly markReadySaving = signal(false);
+  readonly deliverySaving = signal(false);
   readonly photoSaving = signal(false);
   readonly mechanicSaving = signal(false);
   readonly currentUser = this.authService.currentUser;
@@ -135,6 +137,16 @@ export class WorkOrderDetailComponent implements OnInit {
       workOrder.qualityControlCompleted === true
     );
   });
+  readonly canDeliver = computed(() => {
+    const role = this.currentRole();
+    const status = this.workOrder()?.status;
+
+    return (role === 'ADMIN' || role === 'RECEPTIONIST') && status === 'READY';
+  });
+  readonly canShowDeliverySection = computed(() => {
+    const status = this.workOrder()?.status;
+    return status !== 'CANCELLED' && status !== 'REJECTED';
+  });
   readonly canAssignMechanic = computed(
     () => this.currentRole() === 'ADMIN' && !this.isTerminalStatus()
   );
@@ -167,6 +179,11 @@ export class WorkOrderDetailComponent implements OnInit {
   readonly qualityControlForm = this.formBuilder.group({
     completed: [false],
     notes: ['']
+  });
+
+  readonly deliveryForm = this.formBuilder.group({
+    deliveredTo: ['', [Validators.required, Validators.pattern(/.*\S.*/)]],
+    finalMileage: [null as number | null, [Validators.required, Validators.min(0)]]
   });
 
   readonly inspectionForm = this.formBuilder.group({
@@ -387,6 +404,26 @@ export class WorkOrderDetailComponent implements OnInit {
     });
   }
 
+  confirmDeliver(): void {
+    if (this.deliveryForm.invalid || !this.workOrder() || !this.canDeliver() || this.hasFinalMileageBelowCurrent()) {
+      this.deliveryForm.markAllAsTouched();
+      return;
+    }
+
+    const workOrder = this.workOrder()!;
+
+    this.confirmationService.confirm({
+      header: 'Entregar vehículo',
+      message:
+        'La orden cambiará a estado Entregada y el flujo operativo quedará en solo lectura.',
+      acceptLabel: 'Entregar',
+      rejectLabel: 'Cancelar',
+      acceptButtonProps: { severity: 'success' },
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => this.deliverWorkOrder(workOrder.id)
+    });
+  }
+
   addPhoto(): void {
     if (this.photoForm.invalid || !this.inspection()) {
       this.photoForm.markAllAsTouched();
@@ -467,6 +504,18 @@ export class WorkOrderDetailComponent implements OnInit {
   hasPhotoError(controlName: keyof typeof this.photoForm.controls, errorCode: string): boolean {
     const control = this.photoForm.controls[controlName];
     return control.touched && control.hasError(errorCode);
+  }
+
+  hasDeliveryError(controlName: 'deliveredTo' | 'finalMileage', errorCode: string): boolean {
+    const control = this.deliveryForm.controls[controlName];
+    return control.touched && control.hasError(errorCode);
+  }
+
+  hasFinalMileageBelowCurrent(): boolean {
+    const finalMileage = this.deliveryForm.controls.finalMileage.value;
+    const currentMileage = this.workOrder()?.currentMileage ?? 0;
+
+    return finalMileage !== null && finalMileage < currentMileage;
   }
 
   getStatusLabel(status: WorkOrderStatus): string {
@@ -603,6 +652,11 @@ export class WorkOrderDetailComponent implements OnInit {
       notes: workOrder.qualityControlNotes || ''
     });
 
+    this.deliveryForm.patchValue({
+      deliveredTo: workOrder.deliveredTo || '',
+      finalMileage: workOrder.finalMileage ?? null
+    });
+
     this.assignMechanicForm.patchValue({
       assignedMechanicId: workOrder.assignedMechanicId ?? null
     });
@@ -666,6 +720,15 @@ export class WorkOrderDetailComponent implements OnInit {
     };
   }
 
+  private buildDeliveryPayload(): DeliverWorkOrderRequest {
+    const rawValue = this.deliveryForm.getRawValue();
+
+    return {
+      deliveredTo: rawValue.deliveredTo?.trim() || '',
+      finalMileage: rawValue.finalMileage ?? 0
+    };
+  }
+
   private markReady(workOrderId: number): void {
     this.markReadySaving.set(true);
 
@@ -687,6 +750,32 @@ export class WorkOrderDetailComponent implements OnInit {
             severity: 'error',
             summary: 'Órdenes de trabajo',
             detail: (error.error?.message as string) || 'No se pudo marcar la orden como lista.'
+          });
+        }
+      });
+  }
+
+  private deliverWorkOrder(workOrderId: number): void {
+    this.deliverySaving.set(true);
+
+    this.workOrderService
+      .deliverWorkOrder(workOrderId, this.buildDeliveryPayload())
+      .pipe(finalize(() => this.deliverySaving.set(false)))
+      .subscribe({
+        next: (workOrder) => {
+          this.workOrder.set(workOrder);
+          this.patchWorkOrderForms(workOrder);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Entrega',
+            detail: 'Vehículo entregado correctamente.'
+          });
+        },
+        error: (error: HttpErrorResponse) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Entrega',
+            detail: (error.error?.message as string) || 'No se pudo registrar la entrega.'
           });
         }
       });

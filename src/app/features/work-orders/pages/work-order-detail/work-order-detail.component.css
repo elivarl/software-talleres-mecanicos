@@ -74,6 +74,27 @@
   color: var(--p-surface-500);
 }
 
+.work-order-detail__delivery-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.work-order-detail__delivery-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+}
+
+.work-order-detail__delivery-summary small {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--p-surface-500);
+  font-weight: 600;
+}
+
 .work-order-detail__checkbox-field {
   display: flex;
   align-items: center;

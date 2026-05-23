@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   AssignMechanicRequest,
+  DeliverWorkOrderRequest,
   UpdateDiagnosisRequest,
   UpdateInternalNotesRequest,
   UpdateQualityControlRequest,
@@ -76,5 +77,9 @@ export class WorkOrderService {
 
   markReady(id: number): Observable<WorkOrder> {
     return this.http.patch<WorkOrder>(`${this.baseUrl}/${id}/mark-ready`, {});
+  }
+
+  deliverWorkOrder(id: number, payload: DeliverWorkOrderRequest): Observable<WorkOrder> {
+    return this.http.patch<WorkOrder>(`${this.baseUrl}/${id}/deliver`, payload);
   }
 }
