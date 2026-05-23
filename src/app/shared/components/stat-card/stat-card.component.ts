@@ -15,6 +15,7 @@ export class StatCardComponent {
   readonly value = input.required<string>();
   readonly helper = input.required<string>();
   readonly icon = input.required<string>();
+  readonly tagLabel = input<string | null>(null);
   readonly severity = input<'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast'>(
     'info'
   );

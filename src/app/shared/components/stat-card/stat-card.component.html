@@ -10,7 +10,9 @@
       <span class="stat-card__icon">
         <i [class]="icon()"></i>
       </span>
-      <p-tag [severity]="severity()" [value]="'Base lista'" />
+      @if (tagLabel()) {
+        <p-tag [severity]="severity()" [value]="tagLabel()!" />
+      }
     </div>
   </div>
 </p-card>

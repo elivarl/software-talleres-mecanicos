@@ -3,5 +3,6 @@ export interface StatCardModel {
   value: string;
   helper: string;
   icon: string;
+  tagLabel?: string;
   severity?: 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
 }

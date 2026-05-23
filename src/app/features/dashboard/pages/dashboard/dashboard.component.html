@@ -1,49 +1,107 @@
 <section class="app-page">
   <app-page-header
     [title]="'Dashboard'"
-    [subtitle]="'Vista inicial del sistema para el taller. La plantilla queda preparada para insertar métricas, pendientes y accesos rápidos en las siguientes fases.'"
+    [subtitle]="'Resumen operativo del taller con órdenes, entregas y alertas de inventario.'"
   >
     <p-button
-      label="Nueva orden"
-      icon="pi pi-plus"
+      label="Ver órdenes"
+      icon="pi pi-briefcase"
       severity="primary"
-      [disabled]="true"
+      (onClick)="goToWorkOrders()"
     />
   </app-page-header>
 
-  <div class="app-grid app-grid--stats">
-    @for (stat of stats; track stat.label) {
-      <app-stat-card
-        [label]="stat.label"
-        [value]="stat.value"
-        [helper]="stat.helper"
-        [icon]="stat.icon"
-        [severity]="stat.severity ?? 'info'"
-      />
-    }
-  </div>
+  @if (loading()) {
+    <app-loading-state [message]="'Cargando dashboard operativo...'" />
+  } @else if (dashboard(); as dashboardData) {
+    <div class="app-grid app-grid--stats dashboard__stats">
+      @for (stat of stats(); track stat.label) {
+        <app-stat-card
+          [label]="stat.label"
+          [value]="stat.value"
+          [helper]="stat.helper"
+          [icon]="stat.icon"
+          [tagLabel]="stat.tagLabel ?? null"
+          [severity]="stat.severity ?? 'info'"
+        />
+      }
+    </div>
 
-  <div class="dashboard__grid">
-    <p-card header="Resumen operativo" subheader="Plantilla del dashboard">
-      <div class="dashboard__content">
-        <p>
-          El layout usa una estructura administrativa propia con sidebar, topbar y área central
-          limpia. No depende de plantillas externas y queda listo para integrar pantallas reales
-          del flujo del taller.
-        </p>
+    <div class="dashboard__grid">
+      <p-card header="Órdenes por estado" subheader="Distribución operativa actual">
+        @if (statusItems().length === 0) {
+          <app-empty-state
+            [title]="'Sin órdenes para resumir'"
+            [description]="'Todavía no hay órdenes registradas en el periodo actual.'"
+            [icon]="'pi pi-chart-bar'"
+          />
+        } @else {
+          <div class="dashboard__status-list">
+            @for (item of statusItems(); track item.status) {
+              <div class="dashboard__status-item">
+                <div>
+                  <strong>{{ item.label }}</strong>
+                  <small>{{ item.count }} órdenes</small>
+                </div>
+                <p-tag [value]="item.label" [severity]="item.severity" />
+              </div>
+            }
+          </div>
+        }
+      </p-card>
 
-        <div class="dashboard__status-row">
-          <p-tag severity="success" value="PrimeNG configurado" />
-          <p-tag severity="info" value="Responsive" />
-          <p-tag severity="warn" value="Listo para auth" />
-        </div>
-      </div>
-    </p-card>
+      <p-card header="Alertas de inventario" subheader="Repuestos con stock bajo">
+        @if (dashboardData.lowStockItems.length === 0) {
+          <app-empty-state
+            [title]="'Sin alertas de stock bajo'"
+            [description]="'El inventario no presenta repuestos críticos en este momento.'"
+            [icon]="'pi pi-box'"
+          />
+        } @else {
+          <div class="dashboard__inventory-actions">
+            <p-button
+              label="Ir a inventario"
+              icon="pi pi-box"
+              severity="secondary"
+              [outlined]="true"
+              (onClick)="goToInventory()"
+            />
+          </div>
 
+          <p-table [value]="dashboardData.lowStockItems" responsiveLayout="scroll">
+            <ng-template #header>
+              <tr>
+                <th>Repuesto</th>
+                <th>SKU</th>
+                <th>Stock actual</th>
+                <th>Stock mínimo</th>
+                <th>Estado</th>
+              </tr>
+            </ng-template>
+
+            <ng-template #body let-item>
+              <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.sku }}</td>
+                <td>{{ item.currentStock | number: '1.0-2' }}</td>
+                <td>{{ item.minStock | number: '1.0-2' }}</td>
+                <td>
+                  <p-tag
+                    [value]="item.active ? 'Stock bajo' : 'Inactivo'"
+                    [severity]="item.active ? 'warn' : 'secondary'"
+                  />
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
+      </p-card>
+    </div>
+  } @else {
     <app-empty-state
-      [title]="'Sin widgets conectados todavía'"
-      [description]="'En las próximas fases este espacio mostrará KPIs, seguimiento de órdenes y avisos del taller según el backend real.'"
+      [title]="'No se pudo mostrar el dashboard'"
+      [description]="'Intenta recargar la vista para consultar el resumen operativo del taller.'"
       [icon]="'pi pi-chart-line'"
     />
-  </div>
+  }
 </section>
