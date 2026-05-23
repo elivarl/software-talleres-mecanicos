@@ -15,6 +15,7 @@ import {
   Quotation
 } from '../../../../core/models/quotation.model';
 import { PublicQuotationService } from '../../../../core/services/public-quotation.service';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { LoadingStateComponent } from '../../../../shared/components/loading-state/loading-state.component';
 
 @Component({
@@ -29,6 +30,7 @@ import { LoadingStateComponent } from '../../../../shared/components/loading-sta
     TableModule,
     Tag,
     Button,
+    EmptyStateComponent,
     LoadingStateComponent
   ],
   templateUrl: './public-quotation.component.html',
@@ -43,6 +45,7 @@ export class PublicQuotationComponent implements OnInit {
   readonly quotation = signal<Quotation | null>(null);
   readonly loading = signal(false);
   readonly deciding = signal(false);
+  readonly loadError = signal<string | null>(null);
   readonly statusMessage = computed(() => {
     const quotation = this.quotation();
 
@@ -69,6 +72,7 @@ export class PublicQuotationComponent implements OnInit {
     const token = this.route.snapshot.paramMap.get('token');
 
     if (!token) {
+      this.loadError.set('El enlace de la cotización no es válido o está incompleto.');
       return;
     }
 
@@ -125,6 +129,7 @@ export class PublicQuotationComponent implements OnInit {
 
   private loadQuotation(token: string): void {
     this.loading.set(true);
+    this.loadError.set(null);
     this.publicQuotationService.getQuotationByToken(token).subscribe({
       next: (quotation) => {
         this.quotation.set(quotation);
@@ -132,6 +137,9 @@ export class PublicQuotationComponent implements OnInit {
       },
       error: (error: HttpErrorResponse) => {
         this.loading.set(false);
+        this.loadError.set(
+          (error.error?.message as string) || 'No se pudo cargar la cotización pública.'
+        );
         this.messageService.add({
           severity: 'error',
           summary: 'Cotización pública',

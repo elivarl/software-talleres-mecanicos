@@ -15,6 +15,14 @@
         (onClick)="startDiagnosis()"
       />
     }
+    @if (canStartRepair()) {
+      <p-button
+        label="Iniciar reparación"
+        icon="pi pi-cog"
+        severity="contrast"
+        (onClick)="startRepair()"
+      />
+    }
   </app-page-header>
 
   @if (loading()) {

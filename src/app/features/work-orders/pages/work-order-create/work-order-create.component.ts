@@ -56,6 +56,7 @@ export class WorkOrderCreateComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
+  private pendingDependencyRequests = 0;
 
   readonly customers = signal<Customer[]>([]);
   readonly vehicles = signal<Vehicle[]>([]);
@@ -156,25 +157,29 @@ export class WorkOrderCreateComponent implements OnInit {
   }
 
   private loadDependencies(): void {
+    this.pendingDependencyRequests = this.canSelectMechanic() ? 3 : 2;
     this.loading.set(true);
 
     this.customerService.listCustomers().subscribe({
       next: (customers) => {
         this.customers.set(customers);
-        this.loading.set(false);
+        this.finishDependencyRequest();
       },
       error: (error: HttpErrorResponse) => {
-        this.loading.set(false);
         this.messageService.add({
           severity: 'error',
           summary: 'Órdenes de trabajo',
           detail: (error.error?.message as string) || 'No se pudo cargar la lista de clientes.'
         });
+        this.finishDependencyRequest();
       }
     });
 
     this.vehicleService.listVehicles().subscribe({
-      next: (vehicles) => this.vehicles.set(vehicles),
+      next: (vehicles) => {
+        this.vehicles.set(vehicles);
+        this.finishDependencyRequest();
+      },
       error: (error: HttpErrorResponse) => {
         this.messageService.add({
           severity: 'error',
@@ -182,23 +187,35 @@ export class WorkOrderCreateComponent implements OnInit {
           detail:
             (error.error?.message as string) || 'No se pudo cargar la lista de vehículos.'
         });
+        this.finishDependencyRequest();
       }
     });
 
     if (this.canSelectMechanic()) {
       this.userService.listUsers().subscribe({
-        next: (users) =>
+        next: (users) => {
           this.mechanics.set(
             users.filter((user) => user.role === 'MECHANIC' && user.active !== false)
-          ),
+          );
+          this.finishDependencyRequest();
+        },
         error: () => {
           this.messageService.add({
             severity: 'warn',
             summary: 'Órdenes de trabajo',
             detail: 'No se pudo cargar la lista de mecánicos.'
           });
+          this.finishDependencyRequest();
         }
       });
+    }
+  }
+
+  private finishDependencyRequest(): void {
+    this.pendingDependencyRequests = Math.max(0, this.pendingDependencyRequests - 1);
+
+    if (this.pendingDependencyRequests === 0) {
+      this.loading.set(false);
     }
   }
 

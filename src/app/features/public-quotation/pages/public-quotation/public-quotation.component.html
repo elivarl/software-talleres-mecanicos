@@ -4,6 +4,12 @@
   <div class="public-quotation__content">
     @if (loading()) {
       <app-loading-state [message]="'Cargando cotización pública...'" />
+    } @else if (loadError(); as loadError) {
+      <app-empty-state
+        [title]="'No se pudo abrir la cotización'"
+        [description]="loadError"
+        [icon]="'pi pi-exclamation-circle'"
+      />
     } @else if (quotation(); as quotation) {
       <p-card class="public-quotation__hero">
         <p class="public-quotation__eyebrow">Taller360</p>

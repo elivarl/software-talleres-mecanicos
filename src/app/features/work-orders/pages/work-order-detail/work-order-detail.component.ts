@@ -114,6 +114,9 @@ export class WorkOrderDetailComponent implements OnInit {
   readonly canStartDiagnosis = computed(
     () => this.canManageWorkOrder() && this.workOrder()?.status === 'RECEIVED'
   );
+  readonly canStartRepair = computed(
+    () => this.canManageWorkOrder() && this.workOrder()?.status === 'APPROVED'
+  );
   readonly canEditInspection = computed(
     () => this.canManageWorkOrder() && !this.isTerminalStatus()
   );
@@ -249,6 +252,25 @@ export class WorkOrderDetailComponent implements OnInit {
       acceptButtonProps: { severity: 'primary' },
       rejectButtonProps: { severity: 'secondary', outlined: true },
       accept: () => this.updateStatus(workOrder.id, 'DIAGNOSIS')
+    });
+  }
+
+  startRepair(): void {
+    const workOrder = this.workOrder();
+
+    if (!workOrder || !this.canStartRepair()) {
+      return;
+    }
+
+    this.confirmationService.confirm({
+      header: 'Iniciar reparación',
+      message:
+        'La orden cambiará a estado En progreso y quedará habilitada para repuestos, mano de obra y control de calidad.',
+      acceptLabel: 'Iniciar',
+      rejectLabel: 'Cancelar',
+      acceptButtonProps: { severity: 'primary' },
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => this.updateStatus(workOrder.id, 'IN_PROGRESS')
     });
   }
 
