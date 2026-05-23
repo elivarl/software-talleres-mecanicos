@@ -6,6 +6,7 @@ import {
   AssignMechanicRequest,
   UpdateDiagnosisRequest,
   UpdateInternalNotesRequest,
+  UpdateQualityControlRequest,
   UpdateWorkOrderStatusRequest,
   WorkOrder,
   WorkOrderCreateRequest,
@@ -67,5 +68,13 @@ export class WorkOrderService {
 
   updateInternalNotes(id: number, payload: UpdateInternalNotesRequest): Observable<WorkOrder> {
     return this.http.patch<WorkOrder>(`${this.baseUrl}/${id}/internal-notes`, payload);
+  }
+
+  updateQualityControl(id: number, payload: UpdateQualityControlRequest): Observable<WorkOrder> {
+    return this.http.patch<WorkOrder>(`${this.baseUrl}/${id}/quality-control`, payload);
+  }
+
+  markReady(id: number): Observable<WorkOrder> {
+    return this.http.patch<WorkOrder>(`${this.baseUrl}/${id}/mark-ready`, {});
   }
 }

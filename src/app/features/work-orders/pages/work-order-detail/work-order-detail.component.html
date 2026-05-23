@@ -426,6 +426,70 @@
       />
     </p-panel>
 
+    <p-panel header="Control de calidad" [toggleable]="true">
+      <form
+        class="work-order-detail__form"
+        [formGroup]="qualityControlForm"
+        (ngSubmit)="saveQualityControl()"
+      >
+        <div class="work-order-detail__quality-header">
+          <p-tag
+            [value]="workOrder.qualityControlCompleted ? 'Completado' : 'Pendiente'"
+            [severity]="workOrder.qualityControlCompleted ? 'success' : 'warn'"
+          />
+          @if (workOrder.readyAt) {
+            <span class="work-order-detail__quality-meta">
+              Lista desde {{ workOrder.readyAt | date: 'dd/MM/yyyy HH:mm' }}
+            </span>
+          }
+        </div>
+
+        <label class="work-order-detail__checkbox-field">
+          <p-checkbox
+            formControlName="completed"
+            [binary]="true"
+            inputId="qualityControlCompleted"
+          />
+          <span for="qualityControlCompleted">Control de calidad completado</span>
+        </label>
+
+        <label class="work-order-detail__field">
+          <span>Notas de control de calidad</span>
+          <textarea
+            pTextarea
+            formControlName="notes"
+            rows="4"
+            placeholder="Ej. Prueba de ruta, frenado y revisión final correctos"
+          ></textarea>
+        </label>
+
+        @if (canEditQualityControl()) {
+          <div class="work-order-detail__actions">
+            <p-button
+              label="Guardar control de calidad"
+              icon="pi pi-check-square"
+              type="submit"
+              [loading]="qualityControlSaving()"
+            />
+            @if (canMarkReady()) {
+              <p-button
+                label="Marcar como lista"
+                icon="pi pi-verified"
+                severity="success"
+                type="button"
+                [loading]="markReadySaving()"
+                (onClick)="confirmMarkReady()"
+              />
+            }
+          </div>
+        } @else {
+          <div class="work-order-detail__panel-note">
+            El control de calidad solo se edita cuando la orden está en progreso.
+          </div>
+        }
+      </form>
+    </p-panel>
+
     <p-panel header="Notas internas" [toggleable]="true">
       <form
         class="work-order-detail__form"

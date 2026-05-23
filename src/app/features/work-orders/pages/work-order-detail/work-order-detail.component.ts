@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { Checkbox } from 'primeng/checkbox';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Panel } from 'primeng/panel';
@@ -27,6 +28,7 @@ import {
   getWorkOrderStatusLabel,
   getWorkOrderStatusSeverity,
   WorkOrder,
+  UpdateQualityControlRequest,
   WorkOrderStatus
 } from '../../../../core/models/work-order.model';
 import { CustomerService } from '../../../../core/services/customer.service';
@@ -52,6 +54,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
     LoadingStateComponent,
     EmptyStateComponent,
     Card,
+    Checkbox,
     Panel,
     Tag,
     Button,
@@ -89,6 +92,8 @@ export class WorkOrderDetailComponent implements OnInit {
   readonly inspectionSaving = signal(false);
   readonly diagnosisSaving = signal(false);
   readonly notesSaving = signal(false);
+  readonly qualityControlSaving = signal(false);
+  readonly markReadySaving = signal(false);
   readonly photoSaving = signal(false);
   readonly mechanicSaving = signal(false);
   readonly currentUser = this.authService.currentUser;
@@ -115,6 +120,21 @@ export class WorkOrderDetailComponent implements OnInit {
     return status === 'RECEIVED' || status === 'DIAGNOSIS';
   });
   readonly canEditInternalNotes = computed(() => !this.isTerminalStatus());
+  readonly canEditQualityControl = computed(() => {
+    const role = this.currentRole();
+    return (
+      (role === 'ADMIN' || role === 'MECHANIC') &&
+      this.workOrder()?.status === 'IN_PROGRESS'
+    );
+  });
+  readonly canMarkReady = computed(() => {
+    const workOrder = this.workOrder();
+
+    return (
+      workOrder?.status === 'IN_PROGRESS' &&
+      workOrder.qualityControlCompleted === true
+    );
+  });
   readonly canAssignMechanic = computed(
     () => this.currentRole() === 'ADMIN' && !this.isTerminalStatus()
   );
@@ -142,6 +162,11 @@ export class WorkOrderDetailComponent implements OnInit {
 
   readonly internalNotesForm = this.formBuilder.group({
     internalNotes: ['', [Validators.required]]
+  });
+
+  readonly qualityControlForm = this.formBuilder.group({
+    completed: [false],
+    notes: ['']
   });
 
   readonly inspectionForm = this.formBuilder.group({
@@ -309,6 +334,57 @@ export class WorkOrderDetailComponent implements OnInit {
           });
         }
       });
+  }
+
+  saveQualityControl(): void {
+    if (this.qualityControlForm.invalid || !this.workOrder() || !this.canEditQualityControl()) {
+      this.qualityControlForm.markAllAsTouched();
+      return;
+    }
+
+    this.qualityControlSaving.set(true);
+    this.workOrderService
+      .updateQualityControl(this.workOrder()!.id, this.buildQualityControlPayload())
+      .pipe(finalize(() => this.qualityControlSaving.set(false)))
+      .subscribe({
+        next: (workOrder) => {
+          this.workOrder.set(workOrder);
+          this.patchWorkOrderForms(workOrder);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Control de calidad',
+            detail: 'Control de calidad actualizado correctamente.'
+          });
+        },
+        error: (error: HttpErrorResponse) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Control de calidad',
+            detail:
+              (error.error?.message as string) ||
+              'No se pudo actualizar el control de calidad.'
+          });
+        }
+      });
+  }
+
+  confirmMarkReady(): void {
+    const workOrder = this.workOrder();
+
+    if (!workOrder || !this.canMarkReady()) {
+      return;
+    }
+
+    this.confirmationService.confirm({
+      header: 'Marcar como lista',
+      message:
+        'La orden cambiará a estado Lista y quedará preparada para la entrega del vehículo.',
+      acceptLabel: 'Marcar lista',
+      rejectLabel: 'Cancelar',
+      acceptButtonProps: { severity: 'primary' },
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => this.markReady(workOrder.id)
+    });
   }
 
   addPhoto(): void {
@@ -522,6 +598,11 @@ export class WorkOrderDetailComponent implements OnInit {
       internalNotes: workOrder.internalNotes || ''
     });
 
+    this.qualityControlForm.patchValue({
+      completed: workOrder.qualityControlCompleted ?? false,
+      notes: workOrder.qualityControlNotes || ''
+    });
+
     this.assignMechanicForm.patchValue({
       assignedMechanicId: workOrder.assignedMechanicId ?? null
     });
@@ -574,5 +655,40 @@ export class WorkOrderDetailComponent implements OnInit {
       photoUrl: rawValue.photoUrl?.trim() || '',
       description: rawValue.description?.trim() || undefined
     };
+  }
+
+  private buildQualityControlPayload(): UpdateQualityControlRequest {
+    const rawValue = this.qualityControlForm.getRawValue();
+
+    return {
+      completed: rawValue.completed ?? false,
+      notes: rawValue.notes?.trim() || undefined
+    };
+  }
+
+  private markReady(workOrderId: number): void {
+    this.markReadySaving.set(true);
+
+    this.workOrderService
+      .markReady(workOrderId)
+      .pipe(finalize(() => this.markReadySaving.set(false)))
+      .subscribe({
+        next: (workOrder) => {
+          this.workOrder.set(workOrder);
+          this.patchWorkOrderForms(workOrder);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Órdenes de trabajo',
+            detail: 'La orden fue marcada como lista correctamente.'
+          });
+        },
+        error: (error: HttpErrorResponse) => {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Órdenes de trabajo',
+            detail: (error.error?.message as string) || 'No se pudo marcar la orden como lista.'
+          });
+        }
+      });
   }
 }

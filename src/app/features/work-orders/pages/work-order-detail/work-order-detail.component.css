@@ -63,6 +63,24 @@
   gap: 0.5rem;
 }
 
+.work-order-detail__quality-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.work-order-detail__quality-meta {
+  color: var(--p-surface-500);
+}
+
+.work-order-detail__checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .work-order-detail__actions {
   display: flex;
   justify-content: flex-end;

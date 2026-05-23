@@ -73,6 +73,11 @@ export interface UpdateInternalNotesRequest {
   internalNotes: string;
 }
 
+export interface UpdateQualityControlRequest {
+  completed: boolean;
+  notes?: string;
+}
+
 export interface WorkOrderStatusOption {
   label: string;
   value: WorkOrderStatus;
