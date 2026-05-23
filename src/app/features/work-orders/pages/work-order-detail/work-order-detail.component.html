@@ -412,6 +412,13 @@
       />
     </p-panel>
 
+    <p-panel header="Repuestos usados" [toggleable]="true">
+      <app-used-parts-section
+        [workOrderId]="workOrder.id"
+        [workOrderStatus]="workOrder.status"
+      />
+    </p-panel>
+
     <p-panel header="Notas internas" [toggleable]="true">
       <form
         class="work-order-detail__form"

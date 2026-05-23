@@ -1,0 +1,40 @@
+.inventory-list__toolbar {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.inventory-list__toolbar input {
+  min-width: 18rem;
+}
+
+.inventory-list__summary {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.inventory-list__item-cell {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.inventory-list__item-cell span,
+.inventory-list__item-cell small {
+  color: var(--p-surface-500);
+}
+
+.inventory-list__actions-column {
+  width: 14rem;
+}
+
+.inventory-list__actions {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .inventory-list__toolbar input {
+    min-width: 100%;
+  }
+}

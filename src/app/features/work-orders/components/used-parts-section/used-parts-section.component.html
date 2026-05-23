@@ -1,0 +1,132 @@
+<div class="used-parts">
+  <div class="used-parts__status">
+    <p-tag
+      [value]="canAddParts() ? 'Edición habilitada' : canDeleteParts() ? 'Edición parcial' : 'Solo lectura'"
+      [severity]="canAddParts() || canDeleteParts() ? 'success' : 'secondary'"
+    />
+    <span>{{ statusMessage() }}</span>
+  </div>
+
+  @if (canAddParts()) {
+    <p-card>
+      <form class="used-parts__form" [formGroup]="partForm" (ngSubmit)="submit()">
+        <div class="used-parts__form-grid">
+          <label class="used-parts__field">
+            <span>Repuesto</span>
+            <p-select
+              formControlName="inventoryItemId"
+              [options]="inventoryOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [filter]="true"
+              [loading]="inventoryLoading()"
+              placeholder="Selecciona un repuesto activo"
+              appendTo="body"
+            />
+            @if (hasError('inventoryItemId', 'required')) {
+              <small class="used-parts__error">Selecciona un repuesto.</small>
+            }
+          </label>
+
+          <label class="used-parts__field">
+            <span>Cantidad</span>
+            <p-inputnumber
+              formControlName="quantity"
+              [min]="0.01"
+              [minFractionDigits]="0"
+              [maxFractionDigits]="2"
+            />
+            @if (hasError('quantity', 'required') || hasError('quantity', 'min')) {
+              <small class="used-parts__error">Ingresa una cantidad válida.</small>
+            }
+          </label>
+        </div>
+
+        <div class="used-parts__actions">
+          <p-button
+            label="Agregar repuesto"
+            icon="pi pi-plus"
+            type="submit"
+            [loading]="submitting()"
+          />
+        </div>
+      </form>
+    </p-card>
+  }
+
+  @if (!loading() && parts().length === 0) {
+    <app-empty-state
+      [title]="'Sin repuestos usados'"
+      [description]="'Esta orden todavía no registra consumo de repuestos.'"
+      [icon]="'pi pi-box'"
+    />
+  } @else {
+    <div class="used-parts__totals">
+      <p-card>
+        <div class="used-parts__total-card">
+          <small>Total repuestos</small>
+          <strong>{{ totalAmount() | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="used-parts__total-card">
+          <small>Margen estimado</small>
+          <strong>{{ totalMargin() | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+        </div>
+      </p-card>
+    </div>
+
+    <p-table [value]="parts()" [loading]="loading()" responsiveLayout="scroll">
+      <ng-template #header>
+        <tr>
+          <th>Repuesto</th>
+          <th>Cantidad</th>
+          <th>Costo unitario</th>
+          <th>Precio venta</th>
+          <th>Total</th>
+          <th>Margen</th>
+          <th>Fecha</th>
+          @if (canDeleteParts()) {
+            <th>Acciones</th>
+          }
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-part>
+        <tr>
+          <td>
+            <div class="used-parts__item-cell">
+              <strong>{{ part.inventoryItemName }}</strong>
+              <span>{{ part.inventoryItemSku }}</span>
+            </div>
+          </td>
+          <td>{{ part.quantity | number: '1.0-2' }}</td>
+          <td>{{ part.unitCost | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+          <td>{{ part.salePrice | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+          <td>{{ part.total | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+          <td>
+            @if (part.margin !== undefined && part.margin !== null) {
+              {{ part.margin | currency: 'USD' : 'symbol' : '1.2-2' }}
+            } @else {
+              -
+            }
+          </td>
+          <td>{{ part.createdAt ? (part.createdAt | date: 'dd/MM/yyyy HH:mm') : 'Sin fecha' }}</td>
+          @if (canDeleteParts()) {
+            <td>
+              <p-button
+                label="Eliminar"
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [loading]="deletingPartId() === part.id"
+                (onClick)="confirmDelete(part)"
+              />
+            </td>
+          }
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>

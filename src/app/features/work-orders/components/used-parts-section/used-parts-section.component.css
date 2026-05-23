@@ -1,0 +1,69 @@
+.used-parts {
+  display: grid;
+  gap: 1rem;
+}
+
+.used-parts__status {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  color: var(--p-surface-600);
+}
+
+.used-parts__form {
+  display: grid;
+  gap: 1rem;
+}
+
+.used-parts__form-grid {
+  display: grid;
+  grid-template-columns: minmax(18rem, 2fr) minmax(12rem, 1fr);
+  gap: 1rem;
+}
+
+.used-parts__field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.used-parts__field > span,
+.used-parts__total-card small {
+  color: var(--p-surface-500);
+  font-weight: 600;
+}
+
+.used-parts__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.used-parts__totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.used-parts__total-card {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.used-parts__item-cell {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.used-parts__item-cell span {
+  color: var(--p-surface-500);
+}
+
+.used-parts__error {
+  color: var(--p-red-500);
+}
+
+@media (max-width: 768px) {
+  .used-parts__form-grid {
+    grid-template-columns: 1fr;
+  }
+}

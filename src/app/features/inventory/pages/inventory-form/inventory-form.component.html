@@ -1,0 +1,136 @@
+<section class="app-page">
+  <app-page-header
+    [title]="isEditMode() ? 'Editar repuesto' : 'Nuevo repuesto'"
+    [subtitle]="
+      isEditMode()
+        ? 'Actualiza stock, precios y estado del repuesto.'
+        : 'Registra un nuevo repuesto para el taller.'
+    "
+  >
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="cancel()"
+    />
+  </app-page-header>
+
+  @if (loading()) {
+    <app-loading-state [message]="'Cargando repuesto...'" />
+  } @else {
+    <p-card>
+      <form class="inventory-form" [formGroup]="inventoryForm" (ngSubmit)="submit()">
+        <div class="inventory-form__grid">
+          <label class="inventory-form__field">
+            <span>Nombre</span>
+            <input pInputText type="text" formControlName="name" placeholder="Ej. Pastillas de freno" />
+            @if (hasError('name', 'required')) {
+              <small class="inventory-form__error">Ingresa el nombre del repuesto.</small>
+            }
+          </label>
+
+          <label class="inventory-form__field">
+            <span>SKU</span>
+            <input pInputText type="text" formControlName="sku" placeholder="Ej. BRK-001" />
+            @if (hasError('sku', 'required')) {
+              <small class="inventory-form__error">Ingresa el SKU del repuesto.</small>
+            }
+          </label>
+
+          <label class="inventory-form__field">
+            <span>Stock actual</span>
+            <p-inputnumber
+              formControlName="currentStock"
+              [min]="0"
+              [minFractionDigits]="0"
+              [maxFractionDigits]="2"
+            />
+            @if (hasError('currentStock', 'required')) {
+              <small class="inventory-form__error">Ingresa el stock actual.</small>
+            }
+          </label>
+
+          <label class="inventory-form__field">
+            <span>Stock mínimo</span>
+            <p-inputnumber
+              formControlName="minStock"
+              [min]="0"
+              [minFractionDigits]="0"
+              [maxFractionDigits]="2"
+            />
+            @if (hasError('minStock', 'required')) {
+              <small class="inventory-form__error">Ingresa el stock mínimo.</small>
+            }
+          </label>
+
+          <label class="inventory-form__field">
+            <span>Costo unitario</span>
+            <p-inputnumber
+              formControlName="unitCost"
+              mode="currency"
+              currency="USD"
+              [min]="0"
+              locale="en-US"
+            />
+            @if (hasError('unitCost', 'required')) {
+              <small class="inventory-form__error">Ingresa el costo unitario.</small>
+            }
+          </label>
+
+          <label class="inventory-form__field">
+            <span>Precio de venta</span>
+            <p-inputnumber
+              formControlName="salePrice"
+              mode="currency"
+              currency="USD"
+              [min]="0"
+              locale="en-US"
+            />
+            @if (hasError('salePrice', 'required')) {
+              <small class="inventory-form__error">Ingresa el precio de venta.</small>
+            }
+          </label>
+
+          <label class="inventory-form__field">
+            <span>Estado</span>
+            <p-select
+              formControlName="active"
+              [options]="activeOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Selecciona"
+              appendTo="body"
+            />
+          </label>
+        </div>
+
+        <label class="inventory-form__field">
+          <span>Descripción</span>
+          <textarea
+            pTextarea
+            formControlName="description"
+            rows="4"
+            placeholder="Detalles opcionales del repuesto"
+          ></textarea>
+        </label>
+
+        <div class="inventory-form__actions">
+          <p-button
+            label="Cancelar"
+            severity="secondary"
+            [outlined]="true"
+            type="button"
+            (onClick)="cancel()"
+          />
+          <p-button
+            [label]="isEditMode() ? 'Guardar cambios' : 'Crear repuesto'"
+            icon="pi pi-save"
+            type="submit"
+            [loading]="submitting()"
+          />
+        </div>
+      </form>
+    </p-card>
+  }
+</section>

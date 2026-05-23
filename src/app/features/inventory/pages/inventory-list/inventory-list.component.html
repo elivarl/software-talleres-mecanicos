@@ -1,0 +1,130 @@
+<section class="app-page">
+  <app-page-header
+    [title]="'Inventario'"
+    [subtitle]="'Administra repuestos, precios y alertas de stock bajo.'"
+  >
+    @if (canManageInventory()) {
+      <p-button
+        label="Nuevo repuesto"
+        icon="pi pi-plus"
+        (onClick)="createInventoryItem()"
+      />
+    }
+  </app-page-header>
+
+  <p-card>
+    <p-toolbar>
+      <ng-template #start>
+        <div class="inventory-list__toolbar">
+          <input
+            pInputText
+            type="text"
+            [value]="searchTerm()"
+            (input)="searchTerm.set($any($event.target).value)"
+            placeholder="Buscar por nombre o SKU"
+          />
+          <p-button
+            label="Buscar"
+            icon="pi pi-search"
+            severity="secondary"
+            (onClick)="search()"
+          />
+          <p-button
+            label="Limpiar"
+            icon="pi pi-filter-slash"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="clearSearch()"
+          />
+        </div>
+      </ng-template>
+
+      <ng-template #end>
+        <div class="inventory-list__summary">
+          <p-tag
+            [value]="lowStockCount() > 0 ? lowStockCount() + ' con stock bajo' : 'Stock controlado'"
+            [severity]="lowStockCount() > 0 ? 'warn' : 'success'"
+          />
+        </div>
+      </ng-template>
+    </p-toolbar>
+
+    @if (!loading() && inventoryItems().length === 0) {
+      <app-empty-state
+        [title]="'Sin repuestos registrados'"
+        [description]="'Todavía no hay repuestos que coincidan con la búsqueda actual.'"
+        [icon]="'pi pi-box'"
+      />
+    } @else {
+      <p-table [value]="inventoryItems()" [loading]="loading()" responsiveLayout="scroll">
+        <ng-template #header>
+          <tr>
+            <th>Repuesto</th>
+            <th>Stock actual</th>
+            <th>Stock mínimo</th>
+            <th>Costo unitario</th>
+            <th>Precio de venta</th>
+            <th>Estado de stock</th>
+            <th>Estado</th>
+            <th>Actualizado</th>
+            @if (canManageInventory()) {
+              <th class="inventory-list__actions-column">Acciones</th>
+            }
+          </tr>
+        </ng-template>
+
+        <ng-template #body let-item>
+          <tr>
+            <td>
+              <div class="inventory-list__item-cell">
+                <strong>{{ item.name }}</strong>
+                <span>{{ item.sku }}</span>
+                <small>{{ item.description || 'Sin descripción' }}</small>
+              </div>
+            </td>
+            <td>{{ item.currentStock | number: '1.0-2' }}</td>
+            <td>{{ item.minStock | number: '1.0-2' }}</td>
+            <td>{{ item.unitCost | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+            <td>{{ item.salePrice | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+            <td>
+              <p-tag
+                [value]="isLowStock(item) ? 'Stock bajo' : 'Disponible'"
+                [severity]="getStockSeverity(item)"
+              />
+            </td>
+            <td>
+              <p-tag
+                [value]="item.active ? 'Activo' : 'Inactivo'"
+                [severity]="item.active ? 'success' : 'secondary'"
+              />
+            </td>
+            <td>{{ item.updatedAt ? (item.updatedAt | date: 'dd/MM/yyyy HH:mm') : 'Sin fecha' }}</td>
+            @if (canManageInventory()) {
+              <td>
+                <div class="inventory-list__actions">
+                  <p-button
+                    icon="pi pi-pencil"
+                    label="Editar"
+                    severity="secondary"
+                    [text]="true"
+                    (onClick)="editInventoryItem(item.id)"
+                  />
+                  @if (item.active) {
+                    <p-button
+                      icon="pi pi-ban"
+                      label="Desactivar"
+                      severity="danger"
+                      [text]="true"
+                      [loading]="deactivatingId() === item.id"
+                      (onClick)="confirmDeactivate(item)"
+                    />
+                  }
+                </div>
+              </td>
+            }
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </p-card>
+</section>

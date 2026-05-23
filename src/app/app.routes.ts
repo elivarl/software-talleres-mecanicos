@@ -128,10 +128,26 @@ export const routes: Routes = [
       {
         path: 'inventory',
         loadComponent: () =>
-          import('./features/inventory/pages/inventory/inventory.component').then(
-            (m) => m.InventoryComponent
+          import('./features/inventory/pages/inventory-list/inventory-list.component').then(
+            (m) => m.InventoryListComponent
           ),
         title: 'Inventario | Taller360'
+      },
+      {
+        path: 'inventory/new',
+        loadComponent: () =>
+          import('./features/inventory/pages/inventory-form/inventory-form.component').then(
+            (m) => m.InventoryFormComponent
+          ),
+        title: 'Nuevo repuesto | Taller360'
+      },
+      {
+        path: 'inventory/:id/edit',
+        loadComponent: () =>
+          import('./features/inventory/pages/inventory-form/inventory-form.component').then(
+            (m) => m.InventoryFormComponent
+          ),
+        title: 'Editar repuesto | Taller360'
       },
       {
         path: '**',

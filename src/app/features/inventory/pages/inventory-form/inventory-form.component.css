@@ -1,0 +1,31 @@
+.inventory-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.inventory-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.inventory-form__field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.inventory-form__field > span {
+  color: var(--p-surface-500);
+  font-weight: 600;
+}
+
+.inventory-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.inventory-form__error {
+  color: var(--p-red-500);
+}
