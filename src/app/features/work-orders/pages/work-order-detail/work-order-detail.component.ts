@@ -34,6 +34,7 @@ import { InspectionService } from '../../../../core/services/inspection.service'
 import { UserService } from '../../../../core/services/user.service';
 import { VehicleService } from '../../../../core/services/vehicle.service';
 import { WorkOrderService } from '../../../../core/services/work-order.service';
+import { LaborSectionComponent } from '../../components/labor-section/labor-section.component';
 import { QuotationSectionComponent } from '../../../quotations/components/quotation-section/quotation-section.component';
 import { UsedPartsSectionComponent } from '../../components/used-parts-section/used-parts-section.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
@@ -59,6 +60,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
     InputNumber,
     Textarea,
     TableModule,
+    LaborSectionComponent,
     QuotationSectionComponent,
     UsedPartsSectionComponent
   ],

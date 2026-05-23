@@ -1,0 +1,106 @@
+<div class="labor-section">
+  <div class="labor-section__status">
+    <p-tag
+      [value]="canAddLabor() ? 'Edición habilitada' : 'Solo lectura'"
+      [severity]="canAddLabor() ? 'success' : 'secondary'"
+    />
+    <span>{{ statusMessage() }}</span>
+  </div>
+
+  @if (canAddLabor()) {
+    <p-card>
+      <form class="labor-section__form" [formGroup]="laborForm" (ngSubmit)="submit()">
+        <div class="labor-section__form-grid">
+          <label class="labor-section__field">
+            <span>Descripción</span>
+            <input
+              pInputText
+              type="text"
+              formControlName="description"
+              placeholder="Ej. Cambio de pastillas y limpieza"
+            />
+            @if (hasError('description', 'required')) {
+              <small class="labor-section__error">Ingresa la descripción de la mano de obra.</small>
+            }
+            @if (hasError('description', 'pattern')) {
+              <small class="labor-section__error">La descripción no puede estar vacía.</small>
+            }
+          </label>
+
+          <label class="labor-section__field">
+            <span>Precio</span>
+            <p-inputnumber
+              formControlName="price"
+              mode="currency"
+              currency="USD"
+              locale="en-US"
+              [min]="0"
+            />
+            @if (hasError('price', 'required') || hasError('price', 'min')) {
+              <small class="labor-section__error">Ingresa un precio válido.</small>
+            }
+          </label>
+        </div>
+
+        <div class="labor-section__actions">
+          <p-button
+            label="Agregar mano de obra"
+            icon="pi pi-plus"
+            type="submit"
+            [loading]="submitting()"
+          />
+        </div>
+      </form>
+    </p-card>
+  }
+
+  @if (!loading() && laborItems().length === 0) {
+    <app-empty-state
+      [title]="'Sin mano de obra registrada'"
+      [description]="'Esta orden todavía no tiene actividades de mano de obra registradas.'"
+      [icon]="'pi pi-wrench'"
+    />
+  } @else {
+    <div class="labor-section__totals">
+      <p-card>
+        <div class="labor-section__total-card">
+          <small>Total mano de obra</small>
+          <strong>{{ totalLabor() | currency: 'USD' : 'symbol' : '1.2-2' }}</strong>
+        </div>
+      </p-card>
+    </div>
+
+    <p-table [value]="laborItems()" [loading]="loading()" responsiveLayout="scroll">
+      <ng-template #header>
+        <tr>
+          <th>Descripción</th>
+          <th>Precio</th>
+          <th>Fecha</th>
+          @if (canDeleteLabor()) {
+            <th>Acciones</th>
+          }
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-item>
+        <tr>
+          <td>{{ item.description }}</td>
+          <td>{{ item.price | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+          <td>{{ item.createdAt ? (item.createdAt | date: 'dd/MM/yyyy HH:mm') : 'Sin fecha' }}</td>
+          @if (canDeleteLabor()) {
+            <td>
+              <p-button
+                label="Eliminar"
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [loading]="deletingLaborId() === item.id"
+                (onClick)="confirmDelete(item)"
+              />
+            </td>
+          }
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>

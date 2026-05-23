@@ -419,6 +419,13 @@
       />
     </p-panel>
 
+    <p-panel header="Mano de obra" [toggleable]="true">
+      <app-labor-section
+        [workOrderId]="workOrder.id"
+        [workOrderStatus]="workOrder.status"
+      />
+    </p-panel>
+
     <p-panel header="Notas internas" [toggleable]="true">
       <form
         class="work-order-detail__form"
