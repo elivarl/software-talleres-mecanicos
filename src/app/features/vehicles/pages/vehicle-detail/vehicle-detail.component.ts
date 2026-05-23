@@ -47,6 +47,14 @@ export class VehicleDetailComponent implements OnInit {
     }
   }
 
+  viewHistory(): void {
+    const vehicleId = this.vehicle()?.id;
+
+    if (vehicleId) {
+      void this.router.navigate(['/vehicles', vehicleId, 'history']);
+    }
+  }
+
   private loadVehicle(vehicleId: number): void {
     this.loading.set(true);
 

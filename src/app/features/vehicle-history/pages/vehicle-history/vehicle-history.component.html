@@ -1,0 +1,255 @@
+<section class="app-page">
+  <app-page-header
+    [title]="history()?.vehicle?.plate || 'Historial del vehículo'"
+    [subtitle]="'Consulta trabajos anteriores, repuestos, mano de obra y entregas del vehículo.'"
+  >
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="back()"
+    />
+  </app-page-header>
+
+  <p-card>
+    <div class="vehicle-history__search">
+      <input
+        pInputText
+        type="text"
+        [value]="searchPlate()"
+        (input)="searchPlate.set($any($event.target).value)"
+        placeholder="Consultar historial por placa"
+      />
+      <p-button
+        label="Buscar placa"
+        icon="pi pi-search"
+        severity="secondary"
+        (onClick)="searchByPlate()"
+      />
+      <p-button
+        label="Limpiar"
+        icon="pi pi-filter-slash"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="clearPlateSearch()"
+      />
+    </div>
+  </p-card>
+
+  @if (loading()) {
+    <app-loading-state [message]="'Cargando historial del vehículo...'" />
+  } @else if (history(); as vehicleHistory) {
+    <div class="vehicle-history__summary-grid">
+      <p-card header="Vehículo">
+        <dl class="vehicle-history__list">
+          <div>
+            <dt>Placa</dt>
+            <dd>{{ vehicleHistory.vehicle.plate }}</dd>
+          </div>
+          <div>
+            <dt>Marca</dt>
+            <dd>{{ vehicleHistory.vehicle.brand }}</dd>
+          </div>
+          <div>
+            <dt>Modelo</dt>
+            <dd>{{ vehicleHistory.vehicle.model }}</dd>
+          </div>
+          <div>
+            <dt>Año</dt>
+            <dd>{{ vehicleHistory.vehicle.year || 'Sin registro' }}</dd>
+          </div>
+          <div>
+            <dt>Kilometraje</dt>
+            <dd>{{ vehicleHistory.vehicle.mileage | number }}</dd>
+          </div>
+          <div>
+            <dt>VIN</dt>
+            <dd>{{ vehicleHistory.vehicle.vin || 'Sin registro' }}</dd>
+          </div>
+        </dl>
+      </p-card>
+
+      <p-card header="Cliente actual">
+        <dl class="vehicle-history__list">
+          <div>
+            <dt>Nombre</dt>
+            <dd>
+              <button type="button" class="vehicle-history__link" (click)="goToCustomer()">
+                {{ vehicleHistory.customer.fullName }}
+              </button>
+            </dd>
+          </div>
+          <div>
+            <dt>Identificación</dt>
+            <dd>{{ vehicleHistory.customer.identification || 'Sin registro' }}</dd>
+          </div>
+          <div>
+            <dt>Teléfono</dt>
+            <dd>{{ vehicleHistory.customer.phone }}</dd>
+          </div>
+          <div>
+            <dt>Correo</dt>
+            <dd>{{ vehicleHistory.customer.email || 'Sin registro' }}</dd>
+          </div>
+          <div>
+            <dt>Dirección</dt>
+            <dd>{{ vehicleHistory.customer.address || 'Sin registro' }}</dd>
+          </div>
+        </dl>
+      </p-card>
+    </div>
+
+    @if (sortedWorkOrders().length === 0) {
+      <app-empty-state
+        [title]="'Sin órdenes registradas'"
+        [description]="'Este vehículo todavía no tiene historial de trabajos anteriores.'"
+        [icon]="'pi pi-clock'"
+      />
+    } @else {
+      <div class="vehicle-history__orders">
+        @for (order of sortedWorkOrders(); track order.workOrderId) {
+          <p-panel [toggleable]="true">
+            <ng-template #header>
+              <div class="vehicle-history__panel-header">
+                <div>
+                  <strong>{{ order.workOrderCode }}</strong>
+                  <span>{{ order.receptionDate ? (order.receptionDate | date: 'dd/MM/yyyy HH:mm') : 'Sin fecha' }}</span>
+                </div>
+                <p-tag
+                  [value]="getStatusLabel(order.status)"
+                  [severity]="getStatusSeverity(order.status)"
+                />
+              </div>
+            </ng-template>
+
+            <div class="vehicle-history__order-grid">
+              <p-card>
+                <ng-template #title>Resumen de la orden</ng-template>
+                <dl class="vehicle-history__list">
+                  <div>
+                    <dt>Motivo de ingreso</dt>
+                    <dd>{{ order.customerComplaint }}</dd>
+                  </div>
+                  <div>
+                    <dt>Diagnóstico</dt>
+                    <dd>{{ order.diagnosis || 'Sin diagnóstico registrado' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Entrega</dt>
+                    <dd>{{ order.deliveredAt ? (order.deliveredAt | date: 'dd/MM/yyyy HH:mm') : 'Pendiente' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Entregado a</dt>
+                    <dd>{{ order.deliveredTo || 'Sin registro' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Total</dt>
+                    <dd>
+                      @if (getOrderTotal(order.totals); as total) {
+                        {{ total | currency: 'USD' : 'symbol' : '1.2-2' }}
+                      } @else {
+                        No disponible
+                      }
+                    </dd>
+                  </div>
+                </dl>
+                <div class="vehicle-history__order-actions">
+                  <p-button
+                    label="Ver orden"
+                    icon="pi pi-external-link"
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="viewWorkOrder(order.workOrderId)"
+                  />
+                </div>
+              </p-card>
+
+              <p-card>
+                <ng-template #title>Totales</ng-template>
+                <dl class="vehicle-history__list">
+                  <div>
+                    <dt>Repuestos</dt>
+                    <dd>{{ (order.totals?.partsTotal ?? 0) | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Mano de obra</dt>
+                    <dd>{{ (order.totals?.laborTotal ?? 0) | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Servicio</dt>
+                    <dd>{{ (order.totals?.serviceTotal ?? 0) | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Cotización</dt>
+                    <dd>{{ (order.totals?.quotationTotal ?? 0) | currency: 'USD' : 'symbol' : '1.2-2' }}</dd>
+                  </div>
+                </dl>
+              </p-card>
+            </div>
+
+            <div class="vehicle-history__tables">
+              <p-card>
+                <ng-template #title>Repuestos usados</ng-template>
+                @if (order.usedParts.length === 0) {
+                  <div class="vehicle-history__empty-mini">No se registraron repuestos usados.</div>
+                } @else {
+                  <p-table [value]="order.usedParts" responsiveLayout="scroll">
+                    <ng-template #header>
+                      <tr>
+                        <th>Repuesto</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template #body let-part>
+                      <tr>
+                        <td>{{ part.inventoryItemName }} ({{ part.inventoryItemSku }})</td>
+                        <td>{{ part.quantity | number: '1.0-2' }}</td>
+                        <td>{{ part.total | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                }
+              </p-card>
+
+              <p-card>
+                <ng-template #title>Mano de obra</ng-template>
+                @if (order.laborItems.length === 0) {
+                  <div class="vehicle-history__empty-mini">No se registró mano de obra.</div>
+                } @else {
+                  <p-table [value]="order.laborItems" responsiveLayout="scroll">
+                    <ng-template #header>
+                      <tr>
+                        <th>Descripción</th>
+                        <th>Precio</th>
+                      </tr>
+                    </ng-template>
+                    <ng-template #body let-laborItem>
+                      <tr>
+                        <td>{{ laborItem.description }}</td>
+                        <td>{{ laborItem.price | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+                      </tr>
+                    </ng-template>
+                  </p-table>
+                }
+              </p-card>
+            </div>
+          </p-panel>
+        }
+      </div>
+    }
+  } @else if (searchedByPlate()) {
+    <app-empty-state
+      [title]="'Sin resultados para la placa'"
+      [description]="'No existe un vehículo con la placa consultada o no tiene historial disponible.'"
+      [icon]="'pi pi-search'"
+    />
+  } @else {
+    <app-empty-state
+      [title]="'Selecciona un vehículo'"
+      [description]="'Consulta el historial desde el detalle del vehículo o usa la búsqueda por placa.'"
+      [icon]="'pi pi-car'"
+    />
+  }
+</section>

@@ -16,6 +16,12 @@
       severity="primary"
       (onClick)="editVehicle()"
     />
+    <p-button
+      label="Ver historial"
+      icon="pi pi-history"
+      severity="secondary"
+      (onClick)="viewHistory()"
+    />
   </app-page-header>
 
   @if (loading()) {

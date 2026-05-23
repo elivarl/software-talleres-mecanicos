@@ -94,6 +94,14 @@ export const routes: Routes = [
         title: 'Detalle de vehículo | Taller360'
       },
       {
+        path: 'vehicles/:id/history',
+        loadComponent: () =>
+          import('./features/vehicle-history/pages/vehicle-history/vehicle-history.component').then(
+            (m) => m.VehicleHistoryComponent
+          ),
+        title: 'Historial del vehículo | Taller360'
+      },
+      {
         path: 'vehicles/:id/edit',
         loadComponent: () =>
           import('./features/vehicles/pages/vehicle-form/vehicle-form.component').then(
